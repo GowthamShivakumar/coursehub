@@ -1,0 +1,2054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CourseHub Academy — Learn. Build. Grow.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase_config.js"></script>
+<script src="database.js"></script>
+<style>
+/* ===================== DESIGN TOKENS ===================== */
+:root{
+  --bg:#FAFAF8; --surface:#FFFFFF; --tint:#EEF2F7; --tint-warm:#FBF3E6;
+  --ink:#132038; --text:#4A5568; --muted:#8A94A6; --line:#E4E1D8;
+  --accent:#DE8A22; --accent-dark:#B5701A; --accent-ink:#5C3A0E; --accent-soft:#FBEBD3;
+  --success:#1E8A5F; --success-bg:#E7F5EE; --danger:#C0392B; --danger-bg:#FBEAE8;
+  --info:#2B5C99; --info-bg:#E8F0FB; --warn:#B7791F; --warn-bg:#FDF3DF;
+  --radius:14px; --radius-sm:9px;
+  --shadow:0 1px 2px rgba(19,32,56,.05),0 10px 28px -14px rgba(19,32,56,.18);
+  --font-d:'Fraunces',serif; --font-b:'Inter',sans-serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;font-family:var(--font-b);color:var(--text);background:var(--bg);line-height:1.55;-webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4{font-family:var(--font-d);color:var(--ink);margin:0 0 .5em;font-weight:600;line-height:1.15;letter-spacing:-.01em;}
+h1{font-size:clamp(2.1rem,4.2vw,3.4rem);font-weight:600;}
+h2{font-size:clamp(1.6rem,2.6vw,2.3rem);}
+h3{font-size:1.25rem;}
+p{margin:0 0 1em;}
+a{color:inherit;text-decoration:none;}
+img{max-width:100%;display:block;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;font-size:.95rem;}
+:focus-visible{outline:2px solid var(--accent-dark);outline-offset:2px;}
+.container{max-width:1180px;margin:0 auto;padding:0 24px;}
+.muted{color:var(--muted);}
+.center{text-align:center;}
+.section{padding:64px 0;}
+.section-tint{background:var(--tint);}
+.section-head{max-width:640px;margin:0 0 40px;}
+.section-head.center{margin-left:auto;margin-right:auto;}
+.eyebrow{color:var(--accent-dark);font-weight:600;font-size:.8rem;margin-bottom:8px;display:block;}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:999px;border:1px solid transparent;font-weight:600;font-size:.95rem;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease;white-space:nowrap;}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 6px 18px -8px rgba(222,138,34,.6);}
+.btn-primary:hover{background:var(--accent-dark);}
+.btn-outline{background:transparent;border-color:var(--line);color:var(--ink);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent-dark);}
+.btn-ghost{background:transparent;color:var(--ink);}
+.btn-ghost:hover{background:var(--tint);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-danger:hover{background:#a12e21;}
+.btn-sm{padding:8px 16px;font-size:.85rem;}
+.btn-block{width:100%;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.link{color:var(--accent-dark);font-weight:600;text-decoration:underline;text-underline-offset:3px;}
+
+/* Header */
+.site-header{position:sticky;top:0;z-index:50;background:rgba(250,250,248,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
+.nav-wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;gap:20px;}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-d);font-weight:600;font-size:1.15rem;color:var(--ink);}
+.brand-mark{width:36px;height:36px;border-radius:10px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;font-family:var(--font-b);}
+.brand-name em{font-style:normal;color:var(--accent-dark);}
+.main-nav{display:flex;gap:28px;flex:1;justify-content:center;}
+.main-nav a{font-weight:500;font-size:.95rem;color:var(--text);padding:6px 0;border-bottom:2px solid transparent;}
+.main-nav a:hover{color:var(--ink);border-color:var(--accent);}
+.nav-actions{display:flex;align-items:center;gap:10px;}
+.hamburger{display:none;background:none;border:1px solid var(--line);border-radius:8px;width:40px;height:40px;font-size:1.2rem;}
+.mobile-nav{display:none;flex-direction:column;padding:10px 24px 18px;border-top:1px solid var(--line);}
+.mobile-nav a{padding:10px 0;font-weight:500;border-bottom:1px solid var(--line);}
+.mobile-nav a:last-child{border-bottom:none;}
+body.nav-open .mobile-nav{display:flex;}
+@media(max-width:920px){
+  .main-nav{display:none;}
+  .nav-actions .btn-outline.admin-desktop-only{display:none;}
+  .hamburger{display:inline-flex;align-items:center;justify-content:center;}
+}
+
+/* Hero */
+.hero{padding:70px 0 40px;}
+.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft);color:var(--accent-ink);padding:6px 14px;border-radius:999px;font-size:.8rem;font-weight:600;margin-bottom:18px;}
+.hero h1{margin-bottom:18px;}
+.hero p.lead{font-size:1.1rem;max-width:520px;}
+.hero-actions{display:flex;gap:14px;margin-top:28px;flex-wrap:wrap;}
+.hero-stats{display:flex;gap:28px;margin-top:36px;flex-wrap:wrap;}
+.hero-stats div strong{display:block;font-family:var(--font-d);font-size:1.6rem;color:var(--ink);}
+.hero-stats div span{font-size:.82rem;color:var(--muted);}
+.hero-visual{position:relative;height:380px;}
+.stack-card{position:absolute;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;width:230px;}
+.stack-card.c1{top:0;left:20px;transform:rotate(-4deg);}
+.stack-card.c2{top:90px;right:0;transform:rotate(3deg);background:var(--ink);color:#fff;}
+.stack-card.c3{bottom:0;left:60px;transform:rotate(2deg);background:var(--accent-soft);}
+.stack-card h4{margin:0 0 6px;font-size:.95rem;}
+.stack-card small{color:var(--muted);}
+.stack-card.c2 small{color:#cfd7e6;}
+@media(max-width:860px){.hero-grid{grid-template-columns:1fr;}.hero-visual{height:300px;margin-top:20px;}}
+
+/* Cards grid generic */
+.grid{display:grid;gap:24px;}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+@media(max-width:960px){.grid-3,.grid-4{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:620px){.grid-3,.grid-4,.grid-2{grid-template-columns:1fr;}}
+
+.feature-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px;}
+.feature-card .ic{width:44px;height:44px;border-radius:10px;background:var(--tint-warm);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:14px;}
+.feature-card h3{font-size:1.05rem;margin-bottom:6px;}
+.feature-card p{font-size:.9rem;margin:0;color:var(--text);}
+
+/* Course cards */
+.course-toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px;align-items:center;background:var(--surface);border:1px solid var(--line);padding:14px;border-radius:var(--radius);}
+.course-toolbar input[type=text]{flex:1;min-width:160px;}
+.field-inline{padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff;}
+.course-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .15s;}
+.course-card:hover{box-shadow:var(--shadow);}
+.course-thumb{height:200px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:var(--radius) var(--radius) 0 0;}
+.course-thumb img{width:100%;height:100%;object-fit:cover;border-radius:var(--radius) var(--radius) 0 0;}
+.course-thumb span{font-family:var(--font-d);font-size:2rem;color:var(--ink);opacity:.55;}
+.course-body{padding:18px 20px 6px;flex:1;}
+.course-meta-row{display:flex;gap:8px;margin-bottom:10px;}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.02em;}
+.pill-active,.pill-verified,.pill-completed,.pill-Verified{background:var(--success-bg);color:var(--success);}
+.pill-draft,.pill-pending,.pill-Pending,.pill-Initiated{background:var(--warn-bg);color:var(--warn);}
+.pill-closed,.pill-rejected,.pill-Rejected{background:var(--danger-bg);color:var(--danger);}
+.pill-level,.pill-Submitted,.pill-active-reg{background:var(--info-bg);color:var(--info);}
+.course-card h3{font-size:1.08rem;margin-bottom:6px;}
+.course-desc{font-size:.88rem;color:var(--text);min-height:40px;}
+.course-facts{display:flex;gap:14px;font-size:.8rem;color:var(--muted);margin:10px 0;}
+.course-price-row{margin:8px 0 14px;font-family:var(--font-d);font-size:1.15rem;color:var(--ink);}
+.price-old{text-decoration:line-through;color:var(--muted);font-size:.9rem;margin-right:6px;}
+.course-actions{display:flex;gap:10px;padding:14px 20px;border-top:1px solid var(--line);}
+.course-actions .btn{flex:1;}
+
+/* How it works */
+.steps{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;}
+@media(max-width:960px){.steps{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:620px){.steps{grid-template-columns:1fr 1fr;}}
+.step{text-align:center;}
+.step .num{width:40px;height:40px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);margin:0 auto 12px;font-size:1rem;}
+.step p{font-size:.85rem;margin:0;}
+.step h4{font-size:.92rem;margin-bottom:4px;}
+
+/* Testimonials */
+.testi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px;}
+.testi p{font-style:italic;color:var(--ink);}
+.testi .who{display:flex;align-items:center;gap:10px;margin-top:14px;}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--tint-warm);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent-ink);font-size:.85rem;}
+
+/* FAQ */
+.faq-item{border-bottom:1px solid var(--line);padding:14px 0;}
+.faq-item summary{cursor:pointer;font-weight:600;color:var(--ink);list-style:none;display:flex;justify-content:space-between;align-items:center;}
+.faq-item summary::-webkit-details-marker{display:none;}
+.faq-item summary:after{content:'+';font-size:1.3rem;color:var(--accent);}
+.faq-item[open] summary:after{content:'–';}
+.faq-item p{margin:10px 0 0;font-size:.92rem;}
+
+/* Footer */
+.site-footer{background:var(--ink);color:#cfd7e6;padding:52px 0 24px;margin-top:20px;}
+.foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:32px;}
+@media(max-width:760px){.foot-grid{grid-template-columns:1fr 1fr;}}
+.site-footer h4{color:#fff;font-size:.95rem;margin-bottom:14px;font-family:var(--font-b);}
+.site-footer a{display:block;color:#a9b4c8;font-size:.88rem;padding:4px 0;}
+.site-footer a:hover{color:#fff;}
+.foot-bottom{border-top:1px solid #24344f;margin-top:32px;padding-top:20px;font-size:.8rem;color:#8493ac;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+body.admin-mode .site-footer,body.learn-mode .site-footer{display:none;}
+
+/* Forms */
+.form-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:32px;max-width:720px;margin:0 auto;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:620px){.form-grid{grid-template-columns:1fr;}}
+.form-group{margin-bottom:14px;display:flex;flex-direction:column;gap:6px;}
+.form-group.full{grid-column:1/-1;}
+.form-group label{font-size:.82rem;font-weight:600;color:var(--ink);}
+.form-group input,.form-group select,.form-group textarea{padding:11px 13px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff;color:var(--ink);width:100%;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);}
+.form-group.invalid input,.form-group.invalid select{border-color:var(--danger);}
+.field-error{color:var(--danger);font-size:.78rem;min-height:14px;}
+.checkbox-row{display:flex;align-items:center;gap:8px;}
+.checkbox-row input{width:auto;}
+fieldset{border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px;margin:0 0 16px;}
+legend{font-weight:700;color:var(--ink);padding:0 6px;font-size:.85rem;}
+
+/* Auth pages */
+.auth-wrap{max-width:440px;margin:60px auto;padding:0 20px;}
+.auth-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:34px;box-shadow:var(--shadow);}
+.auth-card h2{margin-bottom:4px;}
+.demo-hint{background:var(--tint-warm);border:1px dashed var(--accent);border-radius:var(--radius-sm);padding:10px 14px;font-size:.82rem;color:var(--accent-ink);margin-bottom:18px;}
+
+/* Progress */
+.progress{height:8px;background:var(--tint);border-radius:99px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .3s;}
+.progress-label{font-size:.75rem;color:var(--muted);}
+
+/* Dashboard layout */
+.dash-layout{display:grid;grid-template-columns:230px 1fr;gap:0;min-height:70vh;}
+.dash-side{border-right:1px solid var(--line);padding:28px 16px;background:var(--surface);}
+.dash-side .who{padding:0 10px 20px;border-bottom:1px solid var(--line);margin-bottom:14px;}
+.dash-side .who strong{display:block;font-family:var(--font-d);}
+.dash-side .who span{font-size:.78rem;color:var(--muted);}
+.dash-nav a,.dash-nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border-radius:var(--radius-sm);font-weight:500;font-size:.9rem;color:var(--text);background:none;border:none;}
+.dash-nav a.active,.dash-nav a:hover,.dash-nav button:hover{background:var(--tint);color:var(--ink);}
+.dash-main{padding:32px;}
+@media(max-width:860px){.dash-layout{grid-template-columns:1fr;}.dash-side{border-right:none;border-bottom:1px solid var(--line);}
+  .dash-nav{display:flex;overflow-x:auto;gap:6px;}
+  .dash-nav a,.dash-nav button{white-space:nowrap;}
+  .dash-side .who{display:none;}
+}
+.stat-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
+.stat-card strong{display:block;font-family:var(--font-d);font-size:1.7rem;color:var(--ink);}
+.stat-card span{font-size:.8rem;color:var(--muted);}
+.mini-course-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.mini-course-row:last-child{border-bottom:none;}
+
+/* Tables */
+.table-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);}
+table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:640px;}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap;}
+th{background:var(--tint);color:var(--ink);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
+tr:last-child td{border-bottom:none;}
+.table-actions{display:flex;gap:6px;}
+.table-actions button{padding:6px 10px;font-size:.78rem;}
+
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(19,32,56,.5);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;}
+.modal-box{background:#fff;border-radius:var(--radius);max-width:560px;width:100%;max-height:88vh;overflow-y:auto;padding:28px;position:relative;box-shadow:var(--shadow);}
+.modal-close{position:absolute;top:16px;right:16px;background:var(--tint);border:none;width:32px;height:32px;border-radius:50%;font-size:1rem;}
+.modal-box h3{margin-bottom:16px;}
+
+/* Toast */
+.toast-root{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:400;}
+.toast{background:var(--ink);color:#fff;padding:13px 18px;border-radius:var(--radius-sm);font-size:.88rem;box-shadow:var(--shadow);max-width:320px;}
+.toast.success{background:var(--success);}
+.toast.error{background:var(--danger);}
+
+/* Empty state */
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted);}
+.empty-state .ic{font-size:2.2rem;margin-bottom:10px;}
+
+/* Admin layout */
+.admin-topbar{background:var(--ink);color:#fff;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;}
+.admin-topbar .b{font-family:var(--font-d);font-weight:600;}
+.admin-topbar .btn-outline{border-color:#3b4d6e;color:#fff;}
+.admin-layout{display:grid;grid-template-columns:230px 1fr;}
+.admin-side{background:var(--surface);border-right:1px solid var(--line);padding:18px 12px;min-height:80vh;}
+.admin-side button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:10px 12px;border-radius:var(--radius-sm);background:none;border:none;font-weight:500;font-size:.88rem;color:var(--text);margin-bottom:2px;}
+.admin-side button.active,.admin-side button:hover{background:var(--tint);color:var(--ink);}
+.admin-main{padding:28px;}
+@media(max-width:860px){.admin-layout{grid-template-columns:1fr;}
+  .admin-side{display:flex;overflow-x:auto;min-height:auto;border-right:none;border-bottom:1px solid var(--line);}
+  .admin-side button{white-space:nowrap;}
+}
+.admin-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:.85rem;}
+.bar-row .label{width:160px;flex-shrink:0;color:var(--text);}
+.bar-track{flex:1;background:var(--tint);border-radius:99px;height:14px;overflow:hidden;}
+.bar-fill{height:100%;background:var(--accent);}
+.bar-row .val{width:34px;text-align:right;font-weight:700;color:var(--ink);}
+
+/* Learning layout */
+.learn-layout{display:grid;grid-template-columns:260px 1fr 280px;gap:0;min-height:80vh;}
+@media(max-width:1080px){.learn-layout{grid-template-columns:1fr;}}
+.learn-side{background:var(--surface);border-right:1px solid var(--line);padding:18px;max-height:80vh;overflow-y:auto;}
+.learn-module{margin-bottom:14px;}
+.learn-module h5{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 8px;}
+.lesson-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius-sm);font-size:.86rem;cursor:pointer;margin-bottom:4px;}
+.lesson-item:hover{background:var(--tint);}
+.lesson-item.current{background:var(--accent-soft);color:var(--accent-ink);font-weight:600;}
+.lesson-item.locked{opacity:.55;cursor:not-allowed;}
+.lesson-item .chk{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;}
+.lesson-item.done .chk{background:var(--success);border-color:var(--success);color:#fff;}
+.learn-center{padding:20px;display:flex;flex-direction:column;gap:16px;}
+.video-wrap{position:relative;width:100%;padding-top:56.25%;background:#000;border-radius:var(--radius);overflow:hidden;}
+.video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+.locked-video{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;text-align:center;padding:20px;flex-direction:column;gap:10px;}
+.learn-right{padding:20px;border-left:1px solid var(--line);}
+@media(max-width:1080px){.learn-right{border-left:none;border-top:1px solid var(--line);}}
+
+/* Certificate */
+.cert-frame{background:#FFFDF6;border:10px solid var(--accent-soft);outline:2px solid var(--accent);outline-offset:-16px;padding:50px 30px;text-align:center;max-width:800px;margin:0 auto;}
+.cert-frame .org{font-weight:700;letter-spacing:.06em;color:var(--accent-dark);font-size:.85rem;text-transform:uppercase;}
+.cert-frame h1{margin:16px 0 4px;}
+.cert-frame .name{font-family:var(--font-d);font-style:italic;font-size:2.1rem;color:var(--ink);margin:18px 0 6px;}
+.cert-frame .course{font-weight:700;font-size:1.15rem;margin-bottom:14px;}
+.cert-meta{display:flex;justify-content:space-between;margin-top:36px;font-size:.8rem;color:var(--muted);}
+.qr-box{width:70px;height:70px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:.6rem;text-align:center;margin:0 auto;color:var(--muted);}
+
+/* misc */
+.disclaimer{background:var(--warn-bg);border:1px solid #f0dba8;color:var(--accent-ink);padding:12px 16px;border-radius:var(--radius-sm);font-size:.82rem;margin-bottom:18px;}
+.status-stepper{display:flex;gap:0;margin:20px 0;}
+.status-stepper div{flex:1;text-align:center;padding:10px 6px;border-bottom:4px solid var(--line);font-size:.78rem;font-weight:600;color:var(--muted);}
+.status-stepper div.on{border-color:var(--accent);color:var(--ink);}
+.upi-box{background:var(--tint);border-radius:var(--radius-sm);padding:16px;font-family:monospace;font-size:.85rem;word-break:break-all;margin:12px 0;}
+hr.sep{border:none;border-top:1px solid var(--line);margin:24px 0;}
+.flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+
+/* ===================== ADAPTIVE & RESPONSIVE REFINEMENTS ===================== */
+.course-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.course-thumb .thumb-fallback {
+  display: none;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.course-thumb.fallback-active img {
+  display: none !important;
+}
+.course-thumb.fallback-active .thumb-fallback {
+  display: flex !important;
+}
+
+.back-btn-wrap {
+  margin-bottom: 20px;
+}
+.back-btn-wrap a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Enhanced mobile responsiveness */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+  .section {
+    padding: 40px 0;
+  }
+  .hero {
+    padding: 40px 0 30px;
+  }
+  .hero h1 {
+    font-size: 2.1rem;
+  }
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .hero-visual {
+    height: 260px;
+  }
+  .course-detail-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+  .admin-side {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 10px;
+    gap: 6px;
+    border-bottom: 1px solid var(--line);
+    border-right: none;
+    min-height: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .admin-side button {
+    flex-shrink: 0;
+    width: auto;
+    padding: 8px 14px;
+    font-size: 0.84rem;
+  }
+  .admin-main {
+    padding: 16px 12px;
+  }
+  .dash-layout {
+    grid-template-columns: 1fr;
+  }
+  .dash-side {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    padding: 16px;
+  }
+  .dash-nav {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    gap: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .dash-nav a, .dash-nav button {
+    flex-shrink: 0;
+    padding: 8px 14px;
+  }
+  .table-wrap {
+    margin: 0 -16px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  .course-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .course-toolbar input, .course-toolbar select {
+    width: 100%;
+  }
+  .form-card {
+    padding: 20px 16px;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="nav-wrap container">
+    <a href="#/home" class="brand"><span class="brand-mark">CH</span><span class="brand-name">CourseHub<em>Academy</em></span></a>
+    <nav class="main-nav">
+      <a href="#/home">Home</a>
+      <a href="#/courses">Courses</a>
+      <a href="#/home/about">About</a>
+      <a href="#/home/how">How it Works</a>
+      <a href="#/home/contact">Contact</a>
+    </nav>
+    <div class="nav-actions">
+      <a href="#/login" class="btn btn-primary btn-sm" id="navAuthBtn">Login</a>
+      <button class="btn btn-outline btn-sm" id="navLogoutBtn" data-action="logout" style="display:none;">Logout</button>
+      <button class="hamburger" id="hamburgerBtn" aria-label="Open menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="#/home">Home</a>
+    <a href="#/courses">Courses</a>
+    <a href="#/home/about">About</a>
+    <a href="#/home/how">How it Works</a>
+    <a href="#/home/contact">Contact</a>
+    <a href="#/login" id="navAuthBtnMobile">Login</a>
+    <button class="btn btn-outline btn-sm" id="navLogoutBtnMobile" data-action="logout" style="display:none;width:100%;margin-top:8px;">Logout</button>
+  </nav>
+</header>
+
+<main id="view"></main>
+
+<footer class="site-footer" id="siteFooter">
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <h4 style="font-family:var(--font-d);font-size:1.1rem;">CourseHub Academy</h4>
+        <p style="max-width:280px;font-size:.88rem;">Practical, expert-led courses designed to help you learn real skills, build real projects, and grow your career.</p>
+      </div>
+      <div><h4>Explore</h4>
+        <a href="#/home/about">About</a><a href="#/courses">Courses</a><a href="#/home/contact">Contact</a>
+      </div>
+      <div><h4>Account</h4>
+        <a href="#/login">Student Login</a><a href="#/register/">Register</a><a href="#/admin-login">Admin</a>
+      </div>
+      <div><h4>Follow</h4>
+        <a href="javascript:void(0)">Instagram</a><a href="javascript:void(0)">LinkedIn</a><a href="javascript:void(0)">YouTube</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© <span id="footYear"></span> CourseHub Academy. All rights reserved.</span>
+      <span>Built as a front-end demo — no real backend or payment gateway.</span>
+    </div>
+  </div>
+</footer>
+
+<div id="modalRoot"></div>
+<div id="toastRoot" class="toast-root"></div>
+
+<script>
+/* =========================================================================
+   COURSEHUB ACADEMY — SINGLE FILE APP
+   Sections: 1 Data  2 Utils/UI  3 Auth  4 Courses  5 Students/Registrations
+   6 Payments  7 Learning/Progress  8 Schedules  9 Certificates
+   10 Excel Import/Export  11 Render/Router  12 Init
+   ========================================================================= */
+
+/* ===================== 1. DATA MANAGEMENT ===================== */
+/* Data management functions and mock data have been moved to database.js */
+
+/* ===================== 2. UI UTILITIES ===================== */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):'';}
+function fmtDate(d){if(!d)return '—';const dt=new Date(d+(d.length<=10?'T00:00:00':''));if(isNaN(dt))return d;return dt.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
+function fmtMoney(n){return '₹'+Number(n||0).toLocaleString('en-IN');}
+const PALETTE=['#EFE3CE','#DCEAE4','#E2E5F2','#F3E1DA','#DCEAF2','#EEE0EC'];
+function courseColor(id){let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))>>>0;return PALETTE[h%PALETTE.length];}
+function initials(name){return String(name||'?').split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');}
+
+function toast(msg,type){
+  const root=document.getElementById('toastRoot');
+  const el=document.createElement('div');
+  el.className='toast'+(type?' '+type:'');
+  el.textContent=msg;
+  root.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300);},3200);
+}
+function openModal(html){
+  document.getElementById('modalRoot').innerHTML=`<div class="modal-backdrop" data-action="close-modal"><div class="modal-box" onclick="event.stopPropagation()"><button class="modal-close" data-action="close-modal" aria-label="Close">✕</button>${html}</div></div>`;
+}
+function closeModal(){document.getElementById('modalRoot').innerHTML='';}
+function confirmAction(message,onYes){
+  openModal(`<h3>Please confirm</h3><p>${esc(message)}</p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button class="btn btn-ghost" data-action="close-modal">Cancel</button>
+      <button class="btn btn-danger" id="confirmYesBtn">Yes, continue</button>
+    </div>`);
+  document.getElementById('confirmYesBtn').onclick=()=>{closeModal();onYes();};
+}
+function statusPill(status){return `<span class="pill pill-${status}">${esc(cap(status))}</span>`;}
+function progressBarHTML(pct){pct=Math.round(pct||0);return `<div class="progress"><div class="progress-fill" style="width:${pct}%"></div></div><span class="progress-label">${pct}% complete</span>`;}
+function emptyState(icon,text){return `<div class="empty-state"><div class="ic">${icon}</div><p>${esc(text)}</p></div>`;}
+function renderStars(){return '';}
+
+/* ===================== SESSION ===================== */
+function getSession(){try{return JSON.parse(localStorage.getItem('cp_session')||'null');}catch(e){return null;}}
+function setSession(s){localStorage.setItem('cp_session',JSON.stringify(s));}
+function clearSession(){localStorage.removeItem('cp_session');}
+function currentStudent(){const s=getSession();if(s&&s.role==='student')return DB.students.find(x=>x.id===s.id)||null;return null;}
+function isAdmin(){const s=getSession();return !!(s&&s.role==='admin');}
+
+/* ===================== 3. AUTH ===================== */
+function validateEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);}
+function validateMobile(m){return /^[6-9]\d{9}$/.test(m);}
+
+function studentSignup(data){
+  const errors={};
+  ['fullName','email','mobile','courseId','password']
+    .forEach(f=>{if(!data[f]||!String(data[f]).trim())errors[f]='This field is required.';});
+  if(data.email&&!validateEmail(data.email))errors.email='Enter a valid email address.';
+  if(data.mobile&&!validateMobile(data.mobile))errors.mobile='Enter a valid 10-digit mobile number.';
+  if(data.password&&data.password.length<6)errors.password='Password must be at least 6 characters.';
+  if(DB.students.some(s=>s.email.toLowerCase()===String(data.email).trim().toLowerCase()))errors.email='An account with this email already exists.';
+  if(Object.keys(errors).length)return {ok:false,errors};
+
+  const studentId=nextStudentId();
+  const student={
+    id:studentId,
+    fullName:data.fullName.trim(),
+    email:data.email.trim(),
+    mobile:data.mobile.trim(),
+    whatsapp:data.whatsapp||data.mobile.trim(),
+    dob:data.dob||'2000-01-01',
+    gender:data.gender||'Not specified',
+    address:data.address||'',
+    city:data.city||'',
+    state:data.state||'',
+    pincode:data.pincode||'',
+    qualification:data.qualification||'Graduate',
+    institution:data.institution||'Independent Learner',
+    occupation:data.occupation||'Professional',
+    password:data.password,
+    regDate:new Date().toISOString().slice(0,10)
+  };
+  DB.students.push(student);
+  const course=DB.courses.find(c=>c.id===data.courseId);
+  const regId=uid('REG').toUpperCase();
+  const registration={id:regId,studentId,courseId:data.courseId,date:student.regDate,status:'pending',progressPercent:0};
+  DB.registrations.push(registration);
+  const payment={id:uid('PAY').toUpperCase(),studentId,courseId:data.courseId,regId,amount:(course.discountPrice||course.price),date:student.regDate,status:'Pending',refId:''};
+  DB.payments.push(payment);
+  DB.progress.push({studentId,courseId:data.courseId,completed:[]});
+  saveDB();
+  setSession({role:'student',id:studentId});
+  return {ok:true,student,registration,course};
+}
+
+function studentLogin(identifier,password){
+  const s=DB.students.find(x=>(x.email.toLowerCase()===String(identifier).toLowerCase()||x.id.toLowerCase()===String(identifier).toLowerCase())&&x.password===password);
+  if(!s)return null;
+  setSession({role:'student',id:s.id});
+  return s;
+}
+function adminLogin(u,p){
+  if(u===DB.settings.adminUsername&&p===DB.settings.adminPassword){setSession({role:'admin',id:'admin'});return true;}
+  return false;
+}
+function logout(){clearSession();location.hash='#/home';toast('You have been logged out.');}
+
+/* ===================== 4. COURSE MANAGEMENT ===================== */
+function getCourse(id){return DB.courses.find(c=>c.id===id);}
+function saveCourse(data,editingId){
+  const c={
+    id:editingId||nextCourseId(),name:data.name,shortDesc:data.shortDesc,fullDesc:data.fullDesc,category:data.category,
+    instructor:data.instructor,duration:data.duration,level:data.level,price:Number(data.price||0),discountPrice:Number(data.discountPrice||0),
+    image:data.image||'',status:data.status,startDate:data.startDate,endDate:data.endDate,maxStudents:Number(data.maxStudents||0),
+    upiId:data.upiId,paymentInstructions:data.paymentInstructions,certEligible:!!data.certEligible,registrationOpen:!!data.registrationOpen,
+    syllabus:(data.syllabus||'').split('\n').map(s=>s.trim()).filter(Boolean)
+  };
+  if(editingId){const i=DB.courses.findIndex(x=>x.id===editingId);DB.courses[i]=c;}
+  else DB.courses.push(c);
+  saveDB();
+  return c;
+}
+function deleteCourse(id){
+  DB.courses=DB.courses.filter(c=>c.id!==id);
+  DB.lessons=DB.lessons.filter(l=>l.courseId!==id);
+  saveDB();
+}
+function duplicateCourse(id){
+  const c=getCourse(id);if(!c)return;
+  const copy=Object.assign({},c,{id:nextCourseId(),name:c.name+' (Copy)',status:'draft'});
+  DB.courses.push(copy);saveDB();
+}
+function registeredCount(courseId){return DB.registrations.filter(r=>r.courseId===courseId).length;}
+
+/* ===================== 5. STUDENTS & REGISTRATIONS ===================== */
+function getStudent(id){return DB.students.find(s=>s.id===id);}
+function getRegistration(id){return DB.registrations.find(r=>r.id===id);}
+function registrationsForStudent(studentId){return DB.registrations.filter(r=>r.studentId===studentId);}
+function paymentForReg(regId){return DB.payments.find(p=>p.regId===regId);}
+
+function updateStudentProfile(id,data){
+  const s=getStudent(id);if(!s)return;
+  Object.assign(s,data);
+  saveDB();
+}
+function deleteStudent(id){
+  DB.students=DB.students.filter(s=>s.id!==id);
+  DB.registrations=DB.registrations.filter(r=>r.studentId!==id);
+  DB.payments=DB.payments.filter(p=>p.studentId!==id);
+  DB.progress=DB.progress.filter(p=>p.studentId!==id);
+  saveDB();
+}
+function markRegistrationCompleted(regId){
+  const r=getRegistration(regId);if(!r)return;
+  r.status='completed';r.progressPercent=100;
+  const prog=DB.progress.find(p=>p.studentId===r.studentId&&p.courseId===r.courseId);
+  const lessons=DB.lessons.filter(l=>l.courseId===r.courseId);
+  if(prog)prog.completed=lessons.map(l=>l.id);
+  saveDB();
+}
+
+/* ===================== 6. PAYMENTS / UPI ===================== */
+function buildUpiLink(course,amount){
+  const params=new URLSearchParams({pa:course.upiId||'coursehub@upi',pn:'CourseHub Academy',am:String(amount),cu:'INR',tn:'Fee for '+course.name});
+  return 'upi://pay?'+params.toString();
+}
+function submitPayment(paymentId,refId){
+  const p=DB.payments.find(x=>x.id===paymentId);if(!p)return;
+  p.status='Submitted';p.refId=refId||p.refId;p.date=new Date().toISOString().slice(0,10);
+  const r=getRegistration(p.regId);if(r&&r.status==='pending')r.status='active';
+  saveDB();
+}
+function verifyPayment(paymentId,verified){
+  const p=DB.payments.find(x=>x.id===paymentId);if(!p)return;
+  p.status=verified?'Verified':'Rejected';
+  saveDB();
+}
+
+/* ===================== 7. LEARNING WORKFLOW / PROGRESS ===================== */
+function lessonsForCourse(courseId){return DB.lessons.filter(l=>l.courseId===courseId).sort((a,b)=>a.order-b.order);}
+function getProgress(studentId,courseId){
+  let p=DB.progress.find(x=>x.studentId===studentId&&x.courseId===courseId);
+  if(!p){p={studentId,courseId,completed:[]};DB.progress.push(p);}
+  return p;
+}
+function calculateCourseProgress(studentId,courseId){
+  const lessons=lessonsForCourse(courseId).filter(l=>l.enabled!==false);
+  if(!lessons.length)return 0;
+  const p=getProgress(studentId,courseId);
+  const done=lessons.filter(l=>p.completed.includes(l.id)).length;
+  return Math.round((done/lessons.length)*100);
+}
+function isLessonLocked(studentId,lesson,orderedLessons){
+  const idx=orderedLessons.findIndex(l=>l.id===lesson.id);
+  if(idx<=0)return false;
+  const p=getProgress(studentId,lesson.courseId);
+  const prev=orderedLessons[idx-1];
+  return !p.completed.includes(prev.id);
+}
+function markLessonComplete(studentId,courseId,lessonId){
+  const p=getProgress(studentId,courseId);
+  if(!p.completed.includes(lessonId))p.completed.push(lessonId);
+  const pct=calculateCourseProgress(studentId,courseId);
+  const reg=DB.registrations.find(r=>r.studentId===studentId&&r.courseId===courseId);
+  if(reg){reg.progressPercent=pct;if(pct>=100)reg.status='completed';else if(reg.status==='pending')reg.status='active';}
+  saveDB();
+  return pct;
+}
+function extractYoutubeId(url){
+  if(!url)return '';
+  const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,})/);
+  return m?m[1]:url.trim();
+}
+
+/* ===================== 8. SCHEDULES ===================== */
+function schedulesForCourses(courseIds){return DB.schedules.filter(s=>courseIds.includes(s.courseId)).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));}
+function saveSchedule(data,editingId){
+  const s={id:editingId||uid('SCH').toUpperCase(),courseId:data.courseId,date:data.date,time:data.time,title:data.title,
+    description:data.description,instructor:data.instructor,link:data.link,status:data.status};
+  if(editingId){const i=DB.schedules.findIndex(x=>x.id===editingId);DB.schedules[i]=s;}else DB.schedules.push(s);
+  saveDB();
+}
+function deleteSchedule(id){DB.schedules=DB.schedules.filter(s=>s.id!==id);saveDB();}
+
+/* ===================== 9. CERTIFICATES ===================== */
+function certificateFor(studentId,courseId){return DB.certificates.find(c=>c.studentId===studentId&&c.courseId===courseId);}
+function generateCertificate(studentId,courseId){
+  let cert=certificateFor(studentId,courseId);
+  if(cert)return cert;
+  const student=getStudent(studentId),course=getCourse(courseId);
+  cert={id:nextCertId(),studentId,courseId,studentName:student.fullName,courseName:course.name,completionDate:new Date().toISOString().slice(0,10)};
+  DB.certificates.push(cert);
+  saveDB();
+  return cert;
+}
+function drawCertificateCanvas(cert){
+  const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=850;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#FFFDF6';ctx.fillRect(0,0,1200,850);
+  ctx.strokeStyle='#DE8A22';ctx.lineWidth=10;ctx.strokeRect(30,30,1140,790);
+  ctx.strokeStyle='#B5701A';ctx.lineWidth=2;ctx.strokeRect(50,50,1100,750);
+  ctx.textAlign='center';ctx.fillStyle='#B5701A';ctx.font='700 22px Inter, sans-serif';
+  ctx.fillText('COURSEHUB ACADEMY',600,140);
+  ctx.fillStyle='#132038';ctx.font='600 52px Georgia, serif';
+  ctx.fillText('Certificate of Completion',600,225);
+  ctx.font='20px Inter, sans-serif';ctx.fillStyle='#4A5568';
+  ctx.fillText('This certifies that',600,290);
+  ctx.font='italic 700 54px Georgia, serif';ctx.fillStyle='#132038';
+  ctx.fillText(cert.studentName,600,370);
+  ctx.font='20px Inter, sans-serif';ctx.fillStyle='#4A5568';
+  ctx.fillText('has successfully completed the course',600,415);
+  ctx.font='700 32px Georgia, serif';ctx.fillStyle='#132038';
+  ctx.fillText(cert.courseName,600,470);
+  ctx.font='18px Inter, sans-serif';ctx.fillStyle='#4A5568';
+  ctx.fillText('Completed on '+fmtDate(cert.completionDate),600,520);
+  ctx.textAlign='left';ctx.font='16px Inter, sans-serif';ctx.fillStyle='#8A94A6';
+  ctx.fillText('Certificate ID: '+cert.id,90,760);
+  ctx.textAlign='right';
+  ctx.fillText('Authorized Signatory',1110,750);
+  ctx.beginPath();ctx.moveTo(950,730);ctx.lineTo(1110,730);ctx.strokeStyle='#8A94A6';ctx.lineWidth=1;ctx.stroke();
+  return canvas.toDataURL('image/png');
+}
+function downloadCertificate(certId){
+  const cert=DB.certificates.find(c=>c.id===certId);if(!cert)return;
+  const dataUrl=drawCertificateCanvas(cert);
+  const a=document.createElement('a');a.href=dataUrl;a.download=cert.id+'.png';a.click();
+}
+
+/* ===================== EMAIL TEMPLATES ===================== */
+function renderTemplate(tpl,map){
+  return tpl.replace(/{{\s*(\w+)\s*}}/g,(m,k)=>map[k]!=null?map[k]:m);
+}
+function mailtoLink(subject,body){
+  return 'mailto:?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+}
+
+/* ===================== 10. EXCEL IMPORT / EXPORT ===================== */
+function exportToExcel(type){
+  let rows=[],name='export';
+  if(type==='students'){name='students';rows=DB.students.map(s=>({StudentID:s.id,Name:s.fullName,Email:s.email,Mobile:s.mobile,City:s.city,State:s.state,RegistrationDate:s.regDate}));}
+  else if(type==='courses'){name='courses';rows=DB.courses.map(c=>({CourseID:c.id,Name:c.name,Category:c.category,Instructor:c.instructor,Duration:c.duration,Level:c.level,Price:c.price,DiscountPrice:c.discountPrice,Status:c.status}));}
+  else if(type==='registrations'){name='registrations';rows=DB.registrations.map(r=>{
+    const s=getStudent(r.studentId),c=getCourse(r.courseId),p=paymentForReg(r.id),cert=certificateFor(r.studentId,r.courseId);
+    return {
+      RegistrationID:r.id,
+      StudentID:r.studentId,
+      StudentName:s?s.fullName:'—',
+      Email:s?s.email:'—',
+      Mobile:s?s.mobile:'—',
+      CourseID:r.courseId,
+      CourseName:c?c.name:'—',
+      Category:c?c.category:'—',
+      PricePaid:c?(c.discountPrice||c.price):0,
+      Date:r.date,
+      PaymentStatus:p?p.status:'Pending',
+      Progress:(r.progressPercent||0)+'%',
+      CourseStatus:r.status,
+      CertificateIssued:cert?'Yes ('+cert.id+')':'No'
+    };
+  });}
+  else if(type==='payments'){name='payments';rows=DB.payments.map(p=>{const s=getStudent(p.studentId),c=getCourse(p.courseId);return {PaymentID:p.id,StudentID:p.studentId,StudentName:s?s.fullName:'',Course:c?c.name:'',Amount:p.amount,Date:p.date,Status:p.status,RefID:p.refId};});}
+  else if(type==='certificates'){name='certificates';rows=DB.certificates.map(c=>({CertificateID:c.id,StudentID:c.studentId,StudentName:c.studentName,Course:c.courseName,CompletionDate:c.completionDate}));}
+  if(!rows.length){toast('No data available to export.','error');return;}
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,name);
+  XLSX.writeFile(wb,'coursehub_'+name+'.xlsx');
+  toast(cap(name)+' exported successfully.','success');
+}
+let importPreviewRows=[];
+function handleImportFile(file){
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:'binary'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      importPreviewRows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      renderImportPreview();
+    }catch(err){toast('Could not read this file. Please upload a valid .xlsx or .csv file.','error');}
+  };
+  reader.readAsBinaryString(file);
+}
+function renderImportPreview(){
+  const el=document.getElementById('importPreviewArea');
+  if(!el)return;
+  if(!importPreviewRows.length){el.innerHTML=emptyState('📄','No file selected yet.');return;}
+  const cols=Object.keys(importPreviewRows[0]);
+  el.innerHTML=`<p class="muted">Previewing ${importPreviewRows.length} row(s). Matching columns: ${cols.join(', ')}</p>
+  <div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead>
+  <tbody>${importPreviewRows.slice(0,8).map(r=>`<tr>${cols.map(c=>`<td>${esc(r[c])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+  <div style="display:flex;gap:10px;margin-top:16px;">
+    <button class="btn btn-primary" data-action="confirm-import">Import Data</button>
+    <button class="btn btn-ghost" data-action="cancel-import">Cancel</button>
+  </div>`;
+}
+function confirmImportStudents(){
+  let created=0,updated=0;
+  importPreviewRows.forEach(row=>{
+    const sid=row.StudentID||row['Student ID']||row.studentId;
+    const name=row.Name||row.name||row.FullName;
+    const email=row.Email||row.email||'';
+    const mobile=String(row.Mobile||row.mobile||'');
+    const courseName=row.Course||row.course||'';
+    const course=DB.courses.find(c=>c.name.toLowerCase()===String(courseName).toLowerCase());
+    const paymentStatus=row.PaymentStatus||row['Payment Status']||'Pending';
+    const regDate=row.RegistrationDate||row['Registration Date']||new Date().toISOString().slice(0,10);
+    const progress=Number(row.Progress||0);
+    let student=sid?getStudent(sid):DB.students.find(s=>s.email===email);
+    if(student){Object.assign(student,{fullName:name||student.fullName,email:email||student.email,mobile:mobile||student.mobile});updated++;}
+    else{
+      const newId=sid||nextStudentId();
+      student={id:newId,fullName:name||'Imported Student',dob:'',gender:'',email:email||(newId+'@example.com'),mobile:mobile||'',whatsapp:mobile||'',
+        address:'',city:'',state:'',pincode:'',qualification:'',institution:'',occupation:'',password:'demo123',regDate};
+      DB.students.push(student);created++;
+    }
+    if(course&&!DB.registrations.some(r=>r.studentId===student.id&&r.courseId===course.id)){
+      const regId=uid('REG').toUpperCase();
+      DB.registrations.push({id:regId,studentId:student.id,courseId:course.id,date:regDate,status:progress>=100?'completed':'active',progressPercent:progress});
+      DB.payments.push({id:uid('PAY').toUpperCase(),studentId:student.id,courseId:course.id,regId,amount:course.discountPrice||course.price,date:regDate,status:paymentStatus,refId:''});
+      DB.progress.push({studentId:student.id,courseId:course.id,completed:[]});
+    }
+  });
+  saveDB();
+  importPreviewRows=[];
+  toast(`Import complete — ${created} student(s) created, ${updated} updated.`,'success');
+  renderAdmin('importexport');
+}
+
+/* ===================== 11. RENDER / ROUTER ===================== */
+const view=()=>document.getElementById('view');
+
+function courseCardHTML(c){
+  const price=(c.discountPrice&&c.discountPrice<c.price)?`<span class="price-old">${fmtMoney(c.price)}</span><span class="price-new">${fmtMoney(c.discountPrice)}</span>`:`<span class="price-new">${fmtMoney(c.price)}</span>`;
+  const thumb=c.image?`<img src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.parentElement.classList.add('fallback-active')"><span class="thumb-fallback">${esc(initials(c.name))}</span>`:`<span class="thumb-fallback" style="display:flex;">${esc(initials(c.name))}</span>`;
+  return `<article class="course-card">
+    <div class="course-thumb" style="background:${courseColor(c.id)}">${thumb}</div>
+    <div class="course-body">
+      <div class="course-meta-row">${statusPill(c.status)}<span class="pill pill-level">${esc(c.level)}</span></div>
+      <h3>${esc(c.name)}</h3>
+      <p class="course-desc">${esc(c.shortDesc)}</p>
+      <div class="course-facts"><span>⏱ ${esc(c.duration)}</span><span>👤 ${esc(c.instructor)}</span></div>
+      <div class="course-price-row">${price}</div>${c.couponCode ? '<div class="pill pill-success" style="margin-bottom:14px;background:var(--success-bg);color:var(--success);">🎟️ Coupon: ' + esc(c.couponCode) + '</div>' : ''}
+    </div>
+    <div class="course-actions">
+      <a href="#/course/${c.id}" class="btn btn-outline btn-sm">View Course</a>
+      <a href="#/register/${c.id}" class="btn btn-primary btn-sm">Register</a>
+    </div>
+  </article>`;
+}
+
+function renderHome(){
+  const featured=DB.courses.filter(c=>c.status==='active').slice(0,3);
+  view().innerHTML=`
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="hero-badge">🎓 🌿 Trusted by 2,000+ Agri Entrepreneurs</span>
+        <h1>Master the Food & Agriculture Business</h1>
+        <p class="lead">Grow your agricultural enterprise with industry-leading offline and online courses covering farming, logistics, value addition, and direct-to-consumer sales.</p>
+        <div class="hero-actions">
+          <a href="#/courses" class="btn btn-primary">Explore Courses</a>
+          <a href="#/register/" class="btn btn-outline">Register Now</a>
+        </div>
+        <div class="hero-stats">
+          <div><strong>${DB.courses.length}+</strong><span>Active Courses</span></div>
+          <div><strong>${DB.students.length+18}+</strong><span>Students Enrolled</span></div>
+          <div><strong>${DB.certificates.length+12}+</strong><span>Certificates Issued</span></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="stack-card c1"><h4>🌾 New Lesson Unlocked</h4><small>Harvest Management &amp; Storage</small></div>
+        <div class="stack-card c2"><h4>🏆 Certificate Ready</h4><small>Fruit &amp; Vegetable Value Addition</small></div>
+        <div class="stack-card c3"><h4>📅 Live Session — Today</h4><small>Fresh Produce Trading</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="about">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">About CourseHub Academy</span>
+        <h2>Practical agriculture courses, built for real growth</h2>
+        <p>We are an agricultural academy focused on outcomes, not just certificates. Every course combines structured video lessons, live sessions and hands-on projects — designed by working practitioners so what you learn maps directly to what employers and clients actually need.</p>
+        <p>Our methodology is simple: learn a concept, apply it in a real business scenario, get feedback, and move forward only once you're confident. Whether you're a farmer, trader, or food entrepreneur — we have the right course for you.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-tint">
+    <div class="container">
+      <div class="section-head center">
+        <span class="eyebrow">Why Choose Us</span>
+        <h2>Everything you need to learn well</h2>
+      </div>
+      <div class="grid grid-3">
+        <div class="feature-card"><div class="ic">🏆</div><h3>Expert-led Learning</h3><p>Courses designed and taught by industry practitioners with real project experience.</p></div>
+        <div class="feature-card"><div class="ic">🛠️</div><h3>Practical Curriculum</h3><p>Every module ends with something you build — not just theory to memorize.</p></div>
+        <div class="feature-card"><div class="ic">🗓️</div><h3>Flexible Schedules</h3><p>Learn at your own pace with recorded lessons plus optional live sessions.</p></div>
+        <div class="feature-card"><div class="ic">🎓</div><h3>Certification</h3><p>Earn a verifiable certificate of completion for every course you finish.</p></div>
+        <div class="feature-card"><div class="ic">💬</div><h3>Student Support</h3><p>Get help from instructors and peers throughout your learning journey.</p></div>
+        <div class="feature-card"><div class="ic">💰</div><h3>Affordable Courses</h3><p>Quality education at transparent, accessible pricing with easy UPI payments.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="flex-between" style="margin-bottom:30px;">
+        <div class="section-head" style="margin-bottom:0;"><span class="eyebrow">Featured Courses</span><h2>Start learning today</h2></div>
+        <a href="#/courses" class="link">View all courses →</a>
+      </div>
+      <div class="grid grid-3">${featured.map(courseCardHTML).join('')||emptyState('📚','No courses available yet.')}</div>
+    </div>
+  </section>
+
+  <section class="section section-tint" id="how">
+    <div class="container">
+      <div class="section-head center"><span class="eyebrow">How It Works</span><h2>Your path from sign-up to certificate</h2></div>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><h4>Choose a Course</h4><p>Browse and pick the course that fits your goals.</p></div>
+        <div class="step"><div class="num">2</div><h4>Register</h4><p>Create your student account in minutes.</p></div>
+        <div class="step"><div class="num">3</div><h4>Complete Payment</h4><p>Pay securely via UPI and submit your reference ID.</p></div>
+        <div class="step"><div class="num">4</div><h4>Start Learning</h4><p>Access modules, videos and live sessions.</p></div>
+        <div class="step"><div class="num">5</div><h4>Complete the Course</h4><p>Finish every lesson and track your progress.</p></div>
+        <div class="step"><div class="num">6</div><h4>Get Certified</h4><p>Download your certificate of completion.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head center"><span class="eyebrow">Testimonials</span><h2>What our students say</h2></div>
+        <div class="testi">
+          <p>"The Harvest Management course transformed my farm. I reduced post-harvest losses by 40% in the first season. The offline workshop was hands-on and incredibly practical."</p>
+          <div class="who"><div class="avatar">RS</div><div><strong>Ravi S.</strong><br><small class="muted">Harvest Management &amp; Storage</small></div></div>
+        </div>
+        <div class="testi">
+          <p>"The trading course gave me the contacts and knowledge to move from a small vendor to a regional distributor. My revenue doubled in 3 months."</p>
+          <div class="who"><div class="avatar">AK</div><div><strong>Ananya K.</strong><br><small class="muted">Fresh Produce Trading &amp; Distribution</small></div></div>
+        </div>
+        <div class="testi">
+          <p>"I attended the value addition course offline and launched my own pickle brand within 6 weeks. The packaging and branding module was a game changer."</p>
+          <div class="who"><div class="avatar">MP</div><div><strong>Meena P.</strong><br><small class="muted">Fruit &amp; Vegetable Value Addition</small></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-tint">
+    <div class="container" style="max-width:760px;">
+      <div class="section-head center"><span class="eyebrow">FAQ</span><h2>Common questions</h2></div>
+      <details class="faq-item"><summary>How do I pay for a course?</summary><p>After registering, you'll see the course-specific UPI ID and discounted price. Pay via any UPI app, enter your coupon code if you have one, then submit your transaction reference for admin verification.</p></details>
+      <details class="faq-item"><summary>How long does payment verification take?</summary><p>Our team manually verifies each submitted payment. You'll see the status update from Submitted to Verified in your dashboard once confirmed.</p></details>
+      <details class="faq-item"><summary>Do I get a certificate?</summary><p>Yes — courses marked certificate-eligible issue a downloadable certificate once you complete all lessons.</p></details>
+      <details class="faq-item"><summary>Are courses available offline?</summary><p>Yes! All our courses are available both online (live Zoom/YouTube sessions) and offline (campus workshops in major cities). Choose the format that works for you.</p></details>
+    </div>
+  </section>
+
+  <section class="section section-tint" id="masterclass-session">
+    <div class="container center" style="max-width:920px;">
+      <span class="eyebrow">📺 Free Video Session</span>
+      <h2>Featured Masterclass: Modern Agri-Business & Farming</h2>
+      <p class="muted" style="max-width:620px;margin:0 auto 24px;">Get a direct preview of our hands-on curriculum covering hydroponics, post-harvest shelf-life extension, direct-to-consumer farm logistics, and organic certification.</p>
+      <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;box-shadow:var(--shadow);background:#132038;">
+        <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:16px;" src="https://www.youtube-nocookie.com/embed/jNQXAC9IVRw?rel=0" title="CourseHub Masterclass Session" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+      <div style="margin-top:24px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+        <a href="#/courses" class="btn btn-primary">Explore All Courses</a>
+        <a href="#/register/" class="btn btn-outline">Register for Next Batch</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="contact">
+    <div class="container center">
+      <span class="eyebrow">Contact</span>
+      <h2>Have a question?</h2>
+      <p class="muted">Reach us at <strong>hello@agribizacademy.in</strong> or call +91 98765 43210</p>
+    </div>
+  </section>`;
+  document.body.classList.remove('admin-mode','learn-mode');
+}
+
+function renderCourses(hash){
+  const parts=(hash||'').split('/');
+  const q=(document.getElementById('courseSearch')?document.getElementById('courseSearch').value:'')||'';
+  const list=DB.courses.filter(c=>c.status!=='draft');
+  const cats=[...new Set(DB.courses.map(c=>c.category))];
+  view().innerHTML=`
+  <section class="section" style="padding-top:40px;">
+    <div class="container">
+      <div class="section-head"><span class="eyebrow">Courses</span><h2>Find your next skill</h2></div>
+      <div class="course-toolbar">
+        <input type="text" id="courseSearch" placeholder="Search by name, category or instructor…">
+        <select id="filterCategory" class="field-inline"><option value="">All Categories</option>${cats.map(c=>`<option>${esc(c)}</option>`).join('')}</select>
+        <select id="filterLevel" class="field-inline"><option value="">All Levels</option><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select>
+        <select id="sortPrice" class="field-inline"><option value="">Sort by</option><option value="asc">Price: Low to High</option><option value="desc">Price: High to Low</option></select>
+      </div>
+      <div class="grid grid-3" id="coursesGrid"></div>
+    </div>
+  </section>`;
+  function apply(){
+    const term=document.getElementById('courseSearch').value.toLowerCase();
+    const cat=document.getElementById('filterCategory').value;
+    const lvl=document.getElementById('filterLevel').value;
+    const sort=document.getElementById('sortPrice').value;
+    let filtered=list.filter(c=>(!term||c.name.toLowerCase().includes(term)||c.category.toLowerCase().includes(term)||c.instructor.toLowerCase().includes(term))
+      &&(!cat||c.category===cat)&&(!lvl||c.level===lvl));
+    if(sort==='asc')filtered.sort((a,b)=>(a.discountPrice||a.price)-(b.discountPrice||b.price));
+    if(sort==='desc')filtered.sort((a,b)=>(b.discountPrice||b.price)-(a.discountPrice||a.price));
+    document.getElementById('coursesGrid').innerHTML=filtered.map(courseCardHTML).join('')||emptyState('🔍','No courses match your search.');
+  }
+  ['courseSearch','filterCategory','filterLevel','sortPrice'].forEach(id=>document.getElementById(id).addEventListener('input',apply));
+  apply();
+  document.body.classList.remove('admin-mode','learn-mode');
+}
+
+function renderCourseDetails(id){
+  const c=getCourse(id);
+  if(!c){view().innerHTML=`<div class="container section"><div class="back-btn-wrap"><a href="#/courses" class="btn btn-outline btn-sm">← Back to Courses</a></div>${emptyState('❓','Course not found.')}</div>`;return;}
+  const lessons=lessonsForCourse(c.id);
+  const modules=[...new Set(lessons.map(l=>l.module))];
+  view().innerHTML=`
+  <section class="section" style="padding-top:30px;">
+    <div class="container">
+      <div class="back-btn-wrap"><a href="#/courses" class="btn btn-outline btn-sm">← Back to Courses</a></div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:40px;" class="course-detail-grid">
+        <div>
+          <div class="course-meta-row">${statusPill(c.status)}<span class="pill pill-level">${esc(c.level)}</span><span class="pill pill-level">${esc(c.category)}</span></div>
+          <h1>${esc(c.name)}</h1>
+          <p class="muted">By ${esc(c.instructor)} · ${esc(c.duration)} · ${registeredCount(c.id)} students registered</p>
+          <p>${esc(c.fullDesc)}</p>
+          <h3>What you'll learn</h3>
+          <ul>${c.syllabus.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+          <h3>Course Modules</h3>
+          <ul>${modules.map(m=>`<li>${esc(m)} — ${lessons.filter(l=>l.module===m).length} lesson(s)</li>`).join('')||'<li>Syllabus will be published soon.</li>'}</ul>
+          <h3>Verified Certificate</h3>
+          <p>Earn a recognised certificate on course completion — accepted by agri-businesses, APEDA, and government schemes.</p>
+        </div>
+        <div>
+          <div class="form-card" style="max-width:none;">
+            <div class="course-thumb" style="background:${courseColor(c.id)};border-radius:12px;margin-bottom:16px;height:240px;overflow:hidden;">${c.image?`<img src="${esc(c.image)}" alt="${esc(c.name)}" style="border-radius:12px;width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.classList.add('fallback-active')"><span class="thumb-fallback">${esc(initials(c.name))}</span>`:`<span class="thumb-fallback" style="display:flex;">${esc(initials(c.name))}</span>`}</div>
+            <div class="course-price-row">${c.discountPrice&&c.discountPrice<c.price?`<span class="price-old">${fmtMoney(c.price)}</span><span class="price-new">${fmtMoney(c.discountPrice)}</span>`:`<span class="price-new">${fmtMoney(c.price)}</span>`}</div>${c.couponCode ? `<div class="disclaimer" style="margin-top:0;margin-bottom:10px;background:var(--success-bg);color:var(--success);border-color:var(--success);">🎟️ Apply coupon <strong>${esc(c.couponCode)}</strong> at checkout!</div>` : ''}
+            <p class="muted" style="font-size:.85rem;">Starts ${fmtDate(c.startDate)} · Ends ${fmtDate(c.endDate)}</p>
+            <p class="muted" style="font-size:.85rem;">Max ${c.maxStudents} students</p>
+            <a href="#/register/${c.id}" class="btn btn-primary btn-block" style="margin-top:10px;">${c.registrationOpen?'Register for this Course':'Join Waitlist'}</a>
+            <a href="#/courses" class="btn btn-ghost btn-block" style="margin-top:8px;">← Back to Courses</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>`;
+  document.body.classList.remove('admin-mode','learn-mode');
+}
+
+function renderRegister(preselectId){
+  const courses=DB.courses.filter(c=>c.status==='active');
+  view().innerHTML=`
+  <section class="section" style="padding-top:30px;">
+    <div class="container" style="max-width:680px;">
+      <div class="back-btn-wrap"><a href="#/courses" class="btn btn-outline btn-sm">← Back to Courses</a></div>
+      <div class="section-head center"><span class="eyebrow">Quick Registration</span><h2>Create your student account</h2><p class="muted">Fill in your basic details to start learning immediately.</p></div>
+      <form class="form-card" data-form="register" novalidate style="max-width:100%;">
+        <div class="form-grid">
+          ${fg('fullName','Full Name','text',true,'full')}
+          ${fg('email','Email Address','email',true)}
+          ${fg('mobile','Mobile Number','tel',true)}
+          ${fgSelect('courseId','Select Course',courses.map(c=>({value:c.id,label:c.name + ' (' + fmtMoney(c.discountPrice||c.price) + ')'})),true,'full',preselectId)}
+          ${fg('password','Create Password (min. 6 characters)','password',true,'full')}
+        </div>
+        <button class="btn btn-primary btn-block" type="submit" style="margin-top:16px;padding:13px;font-size:1rem;">Register &amp; Enroll</button>
+        <p class="center muted" style="margin-top:14px;font-size:.88rem;">Already registered? <a href="#/login" class="link">Log in here</a></p>
+      </form>
+    </div>
+  </section>`;
+  document.body.classList.remove('admin-mode','learn-mode');
+}
+function fg(name,label,type,required,full){
+  return `<div class="form-group${full?' full':''}"><label for="f_${name}">${label}${required?' *':''}</label>
+    <input id="f_${name}" name="${name}" type="${type}"><span class="field-error" data-err="${name}"></span></div>`;
+}
+function fgSelect(name,label,options,required,full,preselect){
+  const opts=options.map(o=>{
+    const val=typeof o==='object'?o.value:o, lab=typeof o==='object'?o.label:o;
+    const sel=preselect&&val===preselect?'selected':'';
+    return `<option value="${esc(val)}" ${sel}>${esc(lab)}</option>`;
+  }).join('');
+  return `<div class="form-group${full?' full':''}"><label for="f_${name}">${label}${required?' *':''}</label>
+    <select id="f_${name}" name="${name}"><option value="">Select…</option>${opts}</select><span class="field-error" data-err="${name}"></span></div>`;
+}
+
+function renderLogin(){
+  view().innerHTML=`
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="back-btn-wrap" style="margin-bottom:14px;"><a href="#/home" class="btn btn-outline btn-sm">← Back to Home</a></div>
+      <h2>Login</h2>
+      <p class="muted" style="margin-bottom:18px;">Log in to access your courses, certificates, or management dashboard.</p>
+      <div class="demo-hint" style="line-height:1.6;">
+        👤 <strong>Student Demo:</strong> priya@example.com / demo123<br>
+        🔑 <strong>Admin Demo:</strong> admin / admin123
+      </div>
+      <form data-form="login">
+        <div class="form-group"><label>Email, Student ID, or Admin Username *</label><input name="identifier" type="text" required autocomplete="username" placeholder="e.g. priya@example.com or admin"></div>
+        <div class="form-group"><label>Password *</label><input name="password" type="password" required autocomplete="current-password" placeholder="••••••••"></div>
+        <button class="btn btn-primary btn-block" type="submit" style="margin-top:6px;padding:12px;">Log In</button>
+      </form>
+      <p class="center" style="margin-top:14px;"><a href="javascript:void(0)" class="link" data-action="forgot-password">Forgot password?</a></p>
+      <p class="center muted" style="font-size:.85rem;">New student? <a href="#/register/" class="link">Register now</a></p>
+    </div>
+  </div>`;
+  document.body.classList.remove('admin-mode','learn-mode');
+}
+
+function renderAdminLogin(){
+  view().innerHTML=`
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h2>Admin Login</h2>
+      <p class="muted" style="margin-bottom:18px;">Restricted access for course administrators.</p>
+      <div class="demo-hint">Demo credentials — Username: <strong>admin</strong> · Password: <strong>admin123</strong></div>
+      <form data-form="adminLogin">
+        <div class="form-group"><label>Username</label><input name="username" type="text" required></div>
+        <div class="form-group"><label>Password</label><input name="password" type="password" required></div>
+        <button class="btn btn-primary btn-block" type="submit">Login as Admin</button>
+      </form>
+      <p class="center muted" style="font-size:.85rem;margin-top:14px;">This is a front-end demo login, not production-grade security.</p>
+    </div>
+  </div>`;
+  document.body.classList.add('admin-mode');document.body.classList.remove('learn-mode');
+}
+
+/* ---- Student Dashboard ---- */
+function renderDashboard(tab){
+  const s=currentStudent();
+  if(!s){location.hash='#/login';return;}
+  tab=tab||'overview';
+  const regs=registrationsForStudent(s.id);
+  const nav=[['overview','📊 Overview'],['mycourses','📚 My Courses'],['schedule','📅 Study Schedule'],['certificates','🏆 Certificates'],['profile','👤 Profile']];
+  document.body.classList.remove('admin-mode');document.body.classList.remove('learn-mode');
+  view().innerHTML=`<div class="dash-layout">
+    <aside class="dash-side">
+      <div style="margin-bottom:14px;"><a href="#/home" class="btn btn-outline btn-sm" style="width:100%;justify-content:flex-start;">← Back to Home</a></div>
+      <div class="who"><strong>${esc(s.fullName)}</strong><span>${esc(s.id)}</span></div>
+      <nav class="dash-nav">
+        ${nav.map(([k,l])=>`<a href="#/dashboard/${k}" class="${tab===k?'active':''}">${l}</a>`).join('')}
+        <button data-action="logout">🚪 Logout</button>
+      </nav>
+    </aside>
+    <div class="dash-main" id="dashMain"></div>
+  </div>`;
+  const main=document.getElementById('dashMain');
+  if(tab==='overview'){
+    const completed=regs.filter(r=>r.status==='completed').length;
+    const certs=DB.certificates.filter(c=>c.studentId===s.id).length;
+    const pendingPay=regs.filter(r=>{const p=paymentForReg(r.id);return p&&(p.status==='Pending'||p.status==='Initiated');}).length;
+    const upcoming=schedulesForCourses(regs.map(r=>r.courseId)).filter(sc=>sc.status==='Upcoming').slice(0,3);
+    main.innerHTML=`<h2>Welcome back, ${esc(s.fullName.split(' ')[0])}</h2>
+    <div class="grid grid-4" style="margin-bottom:28px;">
+      <div class="stat-card"><strong>${regs.length}</strong><span>Registered Courses</span></div>
+      <div class="stat-card"><strong>${completed}</strong><span>Completed Courses</span></div>
+      <div class="stat-card"><strong>${certs}</strong><span>Certificates</span></div>
+      <div class="stat-card"><strong>${pendingPay}</strong><span>Pending Payments</span></div>
+    </div>
+    <h3>My Courses</h3>
+    <div class="table-wrap" style="padding:6px 20px;">${regs.map(r=>{const c=getCourse(r.courseId);const pct=calculateCourseProgress(s.id,r.courseId);
+      return `<div class="mini-course-row"><div><strong>${esc(c.name)}</strong><div style="width:200px;margin-top:6px;">${progressBarHTML(pct)}</div></div>${statusPill(r.status)}<a href="#/learn/${c.id}" class="btn btn-outline btn-sm">Continue</a></div>`;}).join('')||emptyState('📚','You have not registered for any course yet.')}</div>
+    <h3 style="margin-top:28px;">Upcoming Classes</h3>
+    <div class="table-wrap" style="padding:6px 20px;">${upcoming.map(sc=>`<div class="mini-course-row"><div><strong>${esc(sc.title)}</strong><br><span class="muted" style="font-size:.82rem;">${fmtDate(sc.date)} · ${sc.time}</span></div>${sc.link?`<a href="${esc(sc.link)}" target="_blank" class="btn btn-outline btn-sm">Join</a>`:''}</div>`).join('')||emptyState('📅','No upcoming classes scheduled.')}</div>`;
+  }
+  else if(tab==='mycourses'){
+    main.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <h2>My Courses</h2>
+      <a href="#/courses" class="btn btn-outline btn-sm">+ Browse More Courses</a>
+    </div>
+    <div class="grid grid-3">${regs.map(r=>{
+      const c=getCourse(r.courseId);const p=paymentForReg(r.id);const pct=calculateCourseProgress(s.id,r.courseId);
+      const cert=certificateFor(s.id,r.courseId);
+      const isComplete = r.status==='completed' || pct>=100 || !!cert;
+      let actionBtn='';
+      if(p&&p.status!=='Verified')actionBtn=`<a href="#/payment/${r.id}" class="btn btn-primary btn-sm btn-block">Complete Payment</a>`;
+      else if(cert)actionBtn=`<a href="#/certificate/${cert.id}" class="btn btn-primary btn-sm btn-block">🏆 View Certificate</a>`;
+      else if(isComplete)actionBtn=`<button class="btn btn-primary btn-sm btn-block" data-action="gen-cert" data-course="${c.id}">🏆 Claim Certificate</button>`;
+      else actionBtn=`<a href="#/learn/${c.id}" class="btn btn-primary btn-sm btn-block">Continue Learning</a>`;
+      
+      const thumbHTML = c.image ? `<img src="${esc(c.image)}" alt="${esc(c.name)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.classList.add('fallback-active')"><span class="thumb-fallback">${esc(initials(c.name))}</span>` : `<span class="thumb-fallback" style="display:flex;">${esc(initials(c.name))}</span>`;
+
+      return `<div class="course-card">
+        <div class="course-thumb" style="background:${courseColor(c.id)};height:160px;overflow:hidden;">${thumbHTML}</div>
+        <div class="course-body">
+          <div class="course-meta-row">
+            ${isComplete ? '<span class="pill pill-success">✅ Completed</span>' : '<span class="pill pill-pending">⏳ Ongoing</span>'}
+            ${p ? statusPill(p.status) : ''}
+          </div>
+          <h3>${esc(c.name)}</h3>
+          <div style="margin:10px 0;">${progressBarHTML(pct)}</div>
+        </div>
+        <div class="course-actions">${actionBtn}</div>
+      </div>`;
+    }).join('')||emptyState('📚','You have not registered for any course yet.')}</div>`;
+  }
+  else if(tab==='schedule'){
+    const list=schedulesForCourses(regs.map(r=>r.courseId));
+    main.innerHTML=`<h2>Study Schedule</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Time</th><th>Course</th><th>Session</th><th>Instructor</th><th>Status</th><th></th></tr></thead>
+    <tbody>${list.map(sc=>{const c=getCourse(sc.courseId);return `<tr><td>${fmtDate(sc.date)}</td><td>${sc.time}</td><td>${esc(c?c.name:'')}</td><td>${esc(sc.title)}</td><td>${esc(sc.instructor)}</td><td>${statusPill(sc.status)}</td><td>${sc.link?`<a href="${esc(sc.link)}" target="_blank" class="btn btn-outline btn-sm">Join / View</a>`:'—'}</td></tr>`;}).join('')||`<tr><td colspan="7">${emptyState('📅','No sessions scheduled yet.')}</td></tr>`}</tbody></table></div>`;
+  }
+  else if(tab==='certificates'){
+    const certs=DB.certificates.filter(c=>c.studentId===s.id);
+    main.innerHTML=`<h2>Certificates</h2><div class="grid grid-3">${certs.map(c=>`<div class="feature-card"><div class="ic">🏆</div><h3>${esc(c.courseName)}</h3><p class="muted">Issued ${fmtDate(c.completionDate)} · ${esc(c.id)}</p><a href="#/certificate/${c.id}" class="btn btn-outline btn-sm btn-block">View / Download</a></div>`).join('')||emptyState('🏆','Complete a course to earn your first certificate.')}</div>`;
+  }
+  else if(tab==='profile'){
+    main.innerHTML=`<h2>Profile</h2>
+    <form class="form-card" style="max-width:640px;margin:0;" data-form="updateProfile">
+      <p class="muted">Student ID: <strong>${esc(s.id)}</strong> · Email: <strong>${esc(s.email)}</strong> (login credentials cannot be changed here)</p>
+      <div class="form-grid">
+        ${fgVal('fullName','Full Name','text',s.fullName)}
+        ${fgVal('mobile','Mobile Number','tel',s.mobile)}
+        ${fgVal('whatsapp','WhatsApp Number','tel',s.whatsapp)}
+        ${fgVal('address','Address','text',s.address,'full')}
+        ${fgVal('city','City','text',s.city)}
+        ${fgVal('state','State','text',s.state)}
+        ${fgVal('pincode','Pincode','text',s.pincode)}
+        ${fgVal('institution','Institution / College','text',s.institution)}
+      </div>
+      <button class="btn btn-primary" type="submit" style="margin-top:8px;">Save Changes</button>
+    </form>`;
+  }
+}
+function fgVal(name,label,type,val,full){
+  return `<div class="form-group${full?' full':''}"><label>${label}</label><input name="${name}" type="${type}" value="${esc(val||'')}"></div>`;
+}
+
+/* ---- Payment Page ---- */
+function renderPayment(regId){
+  const s=currentStudent();if(!s){location.hash='#/login';return;}
+  const r=getRegistration(regId);
+  if(!r||r.studentId!==s.id){view().innerHTML=`<div class="container section">${emptyState('❓','Registration not found.')}</div>`;return;}
+  const c=getCourse(r.courseId);
+  let p=paymentForReg(regId);
+  if(!p){p={id:uid('PAY').toUpperCase(),studentId:s.id,courseId:c.id,regId,amount:c.discountPrice||c.price,date:new Date().toISOString().slice(0,10),status:'Pending',refId:''};DB.payments.push(p);saveDB();}
+  const steps=['Pending','Submitted','Verified'];
+  const activeIdx=p.status==='Rejected'?0:steps.indexOf(p.status);
+  document.body.classList.remove('admin-mode','learn-mode');
+  view().innerHTML=`<section class="section" style="padding-top:40px;"><div class="container" style="max-width:640px;">
+    <div class="section-head"><span class="eyebrow">Payment</span><h2>${esc(c.name)}</h2></div>
+    <div class="disclaimer">This is a demo UPI flow. No real payment gateway is connected — payments are marked "Submitted" by you and must be manually verified by an admin.</div>
+    <div class="form-card" style="max-width:none;">
+      <div class="status-stepper">${steps.map((st,i)=>`<div class="${i<=activeIdx&&p.status!=='Rejected'?'on':''}">${st}</div>`).join('')}</div>
+      ${p.status==='Rejected'?`<div class="disclaimer" style="background:var(--danger-bg);color:var(--danger);">Your last payment submission was rejected. Please re-submit with a correct transaction reference.</div>`:''}
+      <p><strong>Amount Due:</strong> ${fmtMoney(p.amount)}</p>
+      <div class="upi-box"><strong>UPI ID:</strong> ${esc(c.upiId)}<br><strong>Payee:</strong> CourseHub Academy<br><strong>Amount:</strong> ₹${p.amount}</div>
+      <p class="muted" style="font-size:.85rem;">${esc(c.paymentInstructions)}</p>
+      <a href="${buildUpiLink(c,p.amount)}" class="btn btn-primary btn-block">Pay via UPI App</a>
+      ${(p.status==='Pending'||p.status==='Rejected')?`<button class="btn btn-outline btn-block" style="margin-top:10px;" data-action="open-payment-submit" data-payment="${p.id}">I've Completed Payment</button>`:''}
+      ${p.status==='Submitted'?`<p class="muted" style="margin-top:14px;">Submitted on ${fmtDate(p.date)} with reference <strong>${esc(p.refId||'—')}</strong>. Awaiting admin verification.</p>`:''}
+      ${p.status==='Verified'?`<a href="#/learn/${c.id}" class="btn btn-primary btn-block" style="margin-top:10px;">Go to Course →</a>`:''}
+      <a href="#/dashboard/mycourses" class="btn btn-ghost btn-block" style="margin-top:8px;">Back to My Courses</a>
+    </div>
+  </div></section>`;
+}
+
+/* ---- Learning Page ---- */
+function renderLearning(courseId,lessonId){
+  const s=currentStudent();if(!s){location.hash='#/login';return;}
+  const c=getCourse(courseId);
+  const reg=DB.registrations.find(r=>r.studentId===s.id&&r.courseId===courseId);
+  if(!c||!reg){view().innerHTML=`<div class="container section">${emptyState('❓','You are not registered for this course.')}</div>`;return;}
+  const payment=paymentForReg(reg.id);
+  document.body.classList.add('learn-mode');document.body.classList.remove('admin-mode');
+  if(!payment||payment.status!=='Verified'){
+    view().innerHTML=`<div class="container section">${emptyState('🔒','Your payment for this course has not been verified yet. Please complete payment to unlock the course.')}
+    <div class="center"><a href="#/payment/${reg.id}" class="btn btn-primary">Go to Payment</a></div></div>`;
+    return;
+  }
+  const lessons=lessonsForCourse(courseId).filter(l=>l.enabled!==false);
+  const pct=calculateCourseProgress(s.id,courseId);
+  if(!lessons.length){view().innerHTML=`<div class="container section">${emptyState('🎬','No lessons have been published for this course yet.')}</div>`;return;}
+  const prog=getProgress(s.id,courseId);
+  let current=lessons.find(l=>l.id===lessonId);
+  if(!current)current=lessons.find(l=>!prog.completed.includes(l.id))||lessons[0];
+  const locked=isLessonLocked(s.id,current,lessons);
+  const modules=[...new Set(lessons.map(l=>l.module))];
+  const videoId=extractYoutubeId(current.youtubeUrl);
+  view().innerHTML=`<div class="learn-layout">
+    <aside class="learn-side">
+      <h4 style="margin-bottom:14px;">${esc(c.name)}</h4>
+      ${progressBarHTML(pct)}
+      <div style="margin-top:18px;">
+      ${modules.map(m=>`<div class="learn-module"><h5>${esc(m)}</h5>${lessons.filter(l=>l.module===m).map(l=>{
+        const done=prog.completed.includes(l.id);
+        const lock=isLessonLocked(s.id,l,lessons);
+        return `<div class="lesson-item ${l.id===current.id?'current':''} ${done?'done':''} ${lock?'locked':''}" data-action="${lock?'':'go-lesson'}" data-course="${c.id}" data-lesson="${l.id}">
+          <span class="chk">${done?'✓':lock?'🔒':''}</span><span>${esc(l.lessonTitle)}</span></div>`;
+      }).join('')}</div>`).join('')}
+      </div>
+    </aside>
+    <div class="learn-center">
+      <div class="video-wrap">
+        ${locked?`<div class="locked-video">🔒<p>Complete the previous lesson to unlock this lesson.</p></div>`:`<iframe src="https://www.youtube.com/embed/${esc(videoId)}" title="${esc(current.lessonTitle)}" allowfullscreen></iframe>`}
+      </div>
+      <h2 style="margin:0;">${esc(current.lessonTitle)}</h2>
+      <p class="muted">${esc(current.module)} · ${esc(current.duration||'')}</p>
+      ${pct>=100?`<div class="disclaimer" style="background:var(--success-bg);color:var(--success);">🎉 Course Completed! ${c.certEligible?`<a href="javascript:void(0)" class="link" data-action="gen-cert" data-course="${c.id}">Generate your certificate →</a>`:''}</div>`:''}
+    </div>
+    <aside class="learn-right">
+      <h4>Progress</h4>
+      ${progressBarHTML(pct)}
+      <hr class="sep">
+      <h4>Lesson Info</h4>
+      <p class="muted" style="font-size:.85rem;">${esc(current.duration||'')} lesson</p>
+      ${!locked?`<button class="btn btn-primary btn-block" data-action="mark-complete" data-course="${c.id}" data-lesson="${current.id}" ${prog.completed.includes(current.id)?'disabled':''}>${prog.completed.includes(current.id)?'✓ Completed':'Mark Complete'}</button>`:''}
+      <a href="#/dashboard/mycourses" class="btn btn-ghost btn-block" style="margin-top:8px;">← Back to Dashboard</a>
+    </aside>
+  </div>`;
+}
+
+/* ---- Certificate Page ---- */
+function renderCertificatePage(certId){
+  const cert=DB.certificates.find(c=>c.id===certId);
+  if(!cert){view().innerHTML=`<div class="container section">${emptyState('❓','Certificate not found.')}</div>`;return;}
+  document.body.classList.remove('admin-mode','learn-mode');
+  view().innerHTML=`<section class="section" style="padding-top:40px;"><div class="container">
+    <div class="cert-frame">
+      <div class="org">CourseHub Academy</div>
+      <h1>Certificate of Completion</h1>
+      <p class="muted">This certifies that</p>
+      <div class="name">${esc(cert.studentName)}</div>
+      <p class="muted">has successfully completed the course</p>
+      <div class="course">${esc(cert.courseName)}</div>
+      <p class="muted">Completed on ${fmtDate(cert.completionDate)}</p>
+      <div class="cert-meta">
+        <span>Certificate ID: ${esc(cert.id)}</span>
+        <div class="qr-box">Verify:<br>${esc(cert.id)}</div>
+        <span>Authorized Signatory</span>
+      </div>
+    </div>
+    <div class="center" style="margin-top:26px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-primary" data-action="download-cert" data-cert="${cert.id}">Download Certificate</button>
+      <button class="btn btn-outline" data-action="email-cert" data-cert="${cert.id}">Email Certificate</button>
+      <a href="#/dashboard/certificates" class="btn btn-ghost">← Back to Dashboard</a>
+    </div>
+  </div></section>`;
+}
+
+/* ---- ADMIN ---- */
+const ADMIN_TABS=[['dashboard','📊 Dashboard'],['courses','📚 Courses'],['students','🧑‍🎓 Students'],['registrations','📝 Registrations'],
+  ['payments','💳 Payments / UPI'],['lessons','🎬 YouTube Videos'],['schedules','📅 Schedule'],['certificates','🏆 Certificates'],
+  ['emails','✉️ Email Templates'],['importexport','📤 Import / Export'],['settings','⚙️ Settings']];
+
+function renderAdmin(tab){
+  if(!isAdmin()){location.hash='#/admin-login';return;}
+  tab=tab||'dashboard';
+  document.body.classList.add('admin-mode');document.body.classList.remove('learn-mode');
+  view().innerHTML=`
+  <div class="admin-topbar"><span class="b">CourseHub Admin</span><a href="#/home" class="btn btn-outline btn-sm">View Site</a></div>
+  <div class="admin-layout">
+    <aside class="admin-side">${ADMIN_TABS.map(([k,l])=>`<button class="${tab===k?'active':''}" onclick="location.hash='#/admin/${k}'">${l}</button>`).join('')}
+      <button data-action="logout" style="margin-top:10px;border-top:1px solid var(--line);padding-top:14px;">🚪 Logout</button>
+    </aside>
+    <div class="admin-main" id="adminMain"></div>
+  </div>`;
+  const main=document.getElementById('adminMain');
+  const renderers={dashboard:adminDashboardTab,courses:adminCoursesTab,students:adminStudentsTab,registrations:adminRegistrationsTab,
+    payments:adminPaymentsTab,lessons:adminLessonsTab,schedules:adminSchedulesTab,certificates:adminCertificatesTab,
+    emails:adminEmailsTab,importexport:adminImportExportTab,settings:adminSettingsTab};
+  (renderers[tab]||adminDashboardTab)(main);
+}
+
+function adminDashboardTab(main){
+  const totalStudents=DB.students.length,totalCourses=DB.courses.length,totalRegs=DB.registrations.length;
+  const pendingPay=DB.payments.filter(p=>p.status==='Pending'||p.status==='Submitted').length;
+  const verifiedPay=DB.payments.filter(p=>p.status==='Verified').length;
+  const completedCourses=DB.registrations.filter(r=>r.status==='completed').length;
+  const certsIssued=DB.certificates.length;
+  const maxReg=Math.max(1,...DB.courses.map(c=>registeredCount(c.id)));
+  main.innerHTML=`<h2>Admin Dashboard</h2>
+  <div class="grid grid-4" style="margin-bottom:28px;">
+    <div class="stat-card"><strong>${totalCourses}</strong><span>Total Courses</span></div>
+    <div class="stat-card"><strong>${totalStudents}</strong><span>Total Students</span></div>
+    <div class="stat-card"><strong>${totalRegs}</strong><span>Total Registrations</span></div>
+    <div class="stat-card"><strong>${pendingPay}</strong><span>Pending Payments</span></div>
+    <div class="stat-card"><strong>${verifiedPay}</strong><span>Verified Payments</span></div>
+    <div class="stat-card"><strong>${completedCourses}</strong><span>Completed Courses</span></div>
+    <div class="stat-card"><strong>${certsIssued}</strong><span>Certificates Issued</span></div>
+  </div>
+  <div class="grid grid-2">
+    <div class="form-card" style="max-width:none;"><h3>Registrations by Course</h3>
+      ${DB.courses.map(c=>{const n=registeredCount(c.id);return `<div class="bar-row"><span class="label">${esc(c.name)}</span><div class="bar-track"><div class="bar-fill" style="width:${(n/maxReg)*100}%"></div></div><span class="val">${n}</span></div>`;}).join('')}
+    </div>
+    <div class="form-card" style="max-width:none;"><h3>Payment Status Breakdown</h3>
+      ${['Pending','Submitted','Verified','Rejected'].map(st=>{const n=DB.payments.filter(p=>p.status===st).length;const max=Math.max(1,DB.payments.length);return `<div class="bar-row"><span class="label">${st}</span><div class="bar-track"><div class="bar-fill" style="width:${(n/max)*100}%"></div></div><span class="val">${n}</span></div>`;}).join('')}
+    </div>
+  </div>`;
+}
+
+function adminCoursesTab(main){
+  main.innerHTML=`<div class="admin-header-row"><h2>Course Management</h2><button class="btn btn-primary" data-action="new-course">+ Add Course</button></div>
+  <div class="course-toolbar">
+    <input type="text" id="acSearch" placeholder="Search by name or category…">
+    <select id="acStatus" class="field-inline"><option value="">All Status</option><option>active</option><option>draft</option><option>closed</option></select>
+  </div>
+  <div class="table-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th>Students</th><th>Actions</th></tr></thead><tbody id="acBody"></tbody></table></div>`;
+  function apply(){
+    const term=document.getElementById('acSearch').value.toLowerCase();
+    const st=document.getElementById('acStatus').value;
+    const rows=DB.courses.filter(c=>(!term||c.name.toLowerCase().includes(term)||c.category.toLowerCase().includes(term))&&(!st||c.status===st));
+    document.getElementById('acBody').innerHTML=rows.map(c=>`<tr><td>${c.id}</td><td>${esc(c.name)}</td><td>${esc(c.category)}</td><td>${fmtMoney(c.discountPrice||c.price)}</td><td>${statusPill(c.status)}</td><td>${registeredCount(c.id)}</td>
+      <td class="table-actions"><button class="btn btn-outline btn-sm" data-action="edit-course" data-id="${c.id}">Edit</button>
+      <button class="btn btn-outline btn-sm" data-action="dup-course" data-id="${c.id}">Duplicate</button>
+      <button class="btn btn-danger btn-sm" data-action="del-course" data-id="${c.id}">Delete</button></td></tr>`).join('')||`<tr><td colspan="7">${emptyState('📚','No courses found.')}</td></tr>`;
+  }
+  document.getElementById('acSearch').addEventListener('input',apply);
+  document.getElementById('acStatus').addEventListener('input',apply);
+  apply();
+}
+function courseFormHTML(c){
+  c=c||{status:'active',registrationOpen:true,certEligible:true};
+  return `<h3>${c.id?'Edit Course':'Add Course'}</h3>
+  <form data-form="courseForm" data-editing="${c.id||''}">
+  <div class="form-grid">
+    ${fgVal('name','Course Name','text',c.name,'full')}
+    ${fgVal('shortDesc','Short Description','text',c.shortDesc,'full')}
+    <div class="form-group full"><label>Full Description</label><textarea name="fullDesc" rows="3">${esc(c.fullDesc||'')}</textarea></div>
+    ${fgVal('category','Category','text',c.category)}
+    ${fgVal('instructor','Instructor','text',c.instructor)}
+    ${fgVal('duration','Duration','text',c.duration)}
+    <div class="form-group"><label>Level</label><select name="level">${['Beginner','Intermediate','Advanced'].map(l=>`<option ${c.level===l?'selected':''}>${l}</option>`).join('')}</select></div>
+    ${fgVal('price','Price (₹)','number',c.price)}
+    ${fgVal('discountPrice','Discount Price (₹)','number',c.discountPrice)}
+    ${fgVal('couponCode','Coupon Code','text',c.couponCode)}
+    ${fgVal('startDate','Start Date','date',c.startDate)}
+    ${fgVal('endDate','End Date','date',c.endDate)}
+    ${fgVal('maxStudents','Maximum Students','number',c.maxStudents)}
+    <div class="form-group"><label>Status</label><select name="status">${['active','draft','closed'].map(l=>`<option ${c.status===l?'selected':''}>${l}</option>`).join('')}</select></div>
+    ${fgVal('upiId','UPI ID','text',c.upiId)}
+    <div class="form-group full"><label>Payment Instructions</label><textarea name="paymentInstructions" rows="2">${esc(c.paymentInstructions||'')}</textarea></div>
+    <div class="form-group full"><label>Course Syllabus (one item per line)</label><textarea name="syllabus" rows="4">${esc((c.syllabus||[]).join('\n'))}</textarea></div>
+    <div class="form-group"><label>Course Thumbnail (optional image)</label><input type="file" name="imageFile" accept="image/*"></div>
+    <div class="form-group" style="justify-content:flex-end;"><label class="checkbox-row"><input type="checkbox" name="certEligible" ${c.certEligible?'checked':''}> Certificate Eligible</label>
+      <label class="checkbox-row"><input type="checkbox" name="registrationOpen" ${c.registrationOpen?'checked':''}> Registration Open</label></div>
+  </div>
+  <input type="hidden" name="image" value="${esc(c.image||'')}">
+  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:10px;">
+    <button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button>
+    <button type="submit" class="btn btn-primary">Save Course</button>
+  </div></form>`;
+}
+function adminStudentsTab(main){
+  main.innerHTML=`<div class="admin-header-row"><h2>Student Management</h2></div>
+  <div class="course-toolbar"><input type="text" id="asSearch" placeholder="Search by name, email, mobile or Student ID…"></div>
+  <div class="table-wrap"><table><thead><tr><th>Student ID</th><th>Name</th><th>Email</th><th>Mobile</th><th>City</th><th>Reg. Date</th><th>Actions</th></tr></thead><tbody id="asBody"></tbody></table></div>`;
+  function apply(){
+    const term=document.getElementById('asSearch').value.toLowerCase();
+    const rows=DB.students.filter(s=>!term||[s.fullName,s.email,s.mobile,s.id].some(v=>String(v).toLowerCase().includes(term)));
+    document.getElementById('asBody').innerHTML=rows.map(s=>`<tr><td>${s.id}</td><td>${esc(s.fullName)}</td><td>${esc(s.email)}</td><td>${esc(s.mobile)}</td><td>${esc(s.city)}</td><td>${fmtDate(s.regDate)}</td>
+    <td class="table-actions"><button class="btn btn-outline btn-sm" data-action="view-student" data-id="${s.id}">View</button>
+    <button class="btn btn-outline btn-sm" data-action="edit-student" data-id="${s.id}">Edit</button>
+    <button class="btn btn-danger btn-sm" data-action="del-student" data-id="${s.id}">Delete</button></td></tr>`).join('')||`<tr><td colspan="7">${emptyState('🧑‍🎓','No students found.')}</td></tr>`;
+  }
+  document.getElementById('asSearch').addEventListener('input',apply);
+  apply();
+}
+function adminRegistrationsTab(main){
+  main.innerHTML=`<div class="admin-header-row">
+    <h2>Registration Management</h2>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-outline btn-sm" data-action="export-registrations">📥 Export to Excel</button>
+      <button class="btn btn-primary btn-sm" data-action="admin-add-reg">+ Add Registration</button>
+    </div>
+  </div>
+  <div class="course-toolbar">
+    <input type="text" id="arSearch" placeholder="Search by student, email, phone or course…">
+    <select id="arStatus" class="field-inline"><option value="">All Status</option><option>pending</option><option>active</option><option>completed</option></select>
+  </div>
+  <div class="table-wrap"><table><thead><tr><th>Reg. ID</th><th>Student</th><th>Contact</th><th>Course</th><th>Date</th><th>Payment</th><th>Progress</th><th>Status</th><th>Certificate</th><th>Actions</th></tr></thead><tbody id="arBody"></tbody></table></div>`;
+  function apply(){
+    const term=document.getElementById('arSearch').value.toLowerCase();
+    const st=document.getElementById('arStatus').value;
+    const rows=DB.registrations.filter(r=>{const s=getStudent(r.studentId),c=getCourse(r.courseId);
+      return (!term||[s&&s.fullName,c&&c.name].some(v=>String(v||'').toLowerCase().includes(term)))&&(!st||r.status===st);});
+    document.getElementById('arBody').innerHTML=rows.map(r=>{
+      const s=getStudent(r.studentId),c=getCourse(r.courseId),p=paymentForReg(r.id),cert=certificateFor(r.studentId,r.courseId);
+      const contactInfo = s ? esc(s.email) + '<br><small class="muted">' + esc(s.mobile||'') + '</small>' : '—';
+      return `<tr>
+        <td>${r.id}</td>
+        <td><strong>${esc(s?s.fullName:'—')}</strong><br><small class="muted">${r.studentId}</small></td>
+        <td>${contactInfo}</td>
+        <td>${esc(c?c.name:'—')}</td>
+        <td>${fmtDate(r.date)}</td>
+        <td>${p?statusPill(p.status):'<span class="pill pill-pending">Pending</span>'}</td>
+        <td style="min-width:110px;">${progressBarHTML(r.progressPercent)}</td>
+        <td>${statusPill(r.status)}</td>
+        <td>${cert ? '<span class="pill pill-success" title="' + esc(cert.id) + '">🏆 Issued</span>' : '<span class="muted" style="font-size:.8rem;">None</span>'}</td>
+        <td class="table-actions">
+          ${r.status!=='completed'?`<button class="btn btn-outline btn-sm" data-action="mark-completed-reg" data-id="${r.id}">Complete</button>`:''}
+          ${!cert?`<button class="btn btn-primary btn-sm" data-action="admin-gen-cert" data-student="${r.studentId}" data-course="${r.courseId}" title="Issue certificate one by one for this registration">Issue Cert</button>`:`<a href="#/certificate/${cert.id}" class="btn btn-outline btn-sm" style="color:var(--success);border-color:var(--success);">View Cert</a>`}
+        </td>
+      </tr>`;
+    }).join('')||`<tr><td colspan="9">${emptyState('📝','No registrations found.')}</td></tr>`;
+  }
+  document.getElementById('arSearch').addEventListener('input',apply);
+  document.getElementById('arStatus').addEventListener('input',apply);
+  apply();
+}
+function adminPaymentsTab(main){
+  main.innerHTML=`<h2>Payment / UPI Settings</h2>
+  <div class="table-wrap" style="margin-bottom:28px;"><table><thead><tr><th>Course</th><th>UPI ID</th><th>Price</th><th>Discount Price</th><th></th></tr></thead>
+  <tbody>${DB.courses.map(c=>`<tr><td>${esc(c.name)}</td>
+    <td><input type="text" class="field-inline" id="upi_${c.id}" value="${esc(c.upiId)}" style="width:160px;"></td>
+    <td><input type="number" class="field-inline" id="price_${c.id}" value="${c.price}" style="width:100px;"></td>
+    <td><input type="number" class="field-inline" id="disc_${c.id}" value="${c.discountPrice}" style="width:100px;"></td>
+    <td><button class="btn btn-outline btn-sm" data-action="save-course-payment" data-id="${c.id}">Save</button></td></tr>`).join('')}</tbody></table></div>
+  <h2>Payment Records</h2>
+  <div class="course-toolbar"><select id="apStatus" class="field-inline"><option value="">All Status</option><option>Pending</option><option>Submitted</option><option>Verified</option><option>Rejected</option></select></div>
+  <div class="table-wrap"><table><thead><tr><th>Payment ID</th><th>Student</th><th>Course</th><th>Amount</th><th>Date</th><th>Ref ID</th><th>Status</th><th>Actions</th></tr></thead><tbody id="apBody"></tbody></table></div>`;
+  function apply(){
+    const st=document.getElementById('apStatus').value;
+    const rows=DB.payments.filter(p=>!st||p.status===st);
+    document.getElementById('apBody').innerHTML=rows.map(p=>{const s=getStudent(p.studentId),c=getCourse(p.courseId);
+      return `<tr><td>${p.id}</td><td>${esc(s?s.fullName:'—')}</td><td>${esc(c?c.name:'—')}</td><td>${fmtMoney(p.amount)}</td><td>${fmtDate(p.date)}</td><td>${esc(p.refId||'—')}</td><td>${statusPill(p.status)}</td>
+      <td class="table-actions">${p.status==='Submitted'?`<button class="btn btn-primary btn-sm" data-action="verify-pay" data-id="${p.id}">Verify</button><button class="btn btn-danger btn-sm" data-action="reject-pay" data-id="${p.id}">Reject</button>`:'—'}</td></tr>`;
+    }).join('')||`<tr><td colspan="8">${emptyState('💳','No payment records found.')}</td></tr>`;
+  }
+  document.getElementById('apStatus').addEventListener('input',apply);
+  apply();
+}
+function adminLessonsTab(main){
+  const courseId=window._adminLessonCourse||DB.courses[0]?.id;
+  window._adminLessonCourse=courseId;
+  main.innerHTML=`<div class="admin-header-row"><h2>YouTube Video Management</h2><button class="btn btn-primary" data-action="new-lesson">+ Add Video</button></div>
+  <div class="course-toolbar"><select id="alCourse" class="field-inline">${DB.courses.map(c=>`<option value="${c.id}" ${c.id===courseId?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
+  <div class="table-wrap"><table><thead><tr><th>Order</th><th>Module</th><th>Lesson</th><th>Duration</th><th>Enabled</th><th>Actions</th></tr></thead><tbody id="alBody"></tbody></table></div>`;
+  function apply(){
+    const cid=document.getElementById('alCourse').value;window._adminLessonCourse=cid;
+    const rows=lessonsForCourse(cid);
+    document.getElementById('alBody').innerHTML=rows.map((l,i)=>`<tr><td>${l.order}</td><td>${esc(l.module)}</td><td>${esc(l.lessonTitle)}</td><td>${esc(l.duration||'')}</td><td>${l.enabled!==false?'✅ Enabled':'⛔ Disabled'}</td>
+    <td class="table-actions">
+      <button class="btn btn-outline btn-sm" data-action="move-lesson" data-dir="up" data-id="${l.id}">↑</button>
+      <button class="btn btn-outline btn-sm" data-action="move-lesson" data-dir="down" data-id="${l.id}">↓</button>
+      <button class="btn btn-outline btn-sm" data-action="toggle-lesson" data-id="${l.id}">${l.enabled!==false?'Disable':'Enable'}</button>
+      <button class="btn btn-outline btn-sm" data-action="edit-lesson" data-id="${l.id}">Edit</button>
+      <button class="btn btn-danger btn-sm" data-action="del-lesson" data-id="${l.id}">Delete</button>
+    </td></tr>`).join('')||`<tr><td colspan="6">${emptyState('🎬','No lessons added for this course yet.')}</td></tr>`;
+  }
+  document.getElementById('alCourse').addEventListener('input',apply);
+  apply();
+}
+function lessonFormHTML(l){
+  l=l||{courseId:window._adminLessonCourse,enabled:true,order:(lessonsForCourse(window._adminLessonCourse).length+1)};
+  return `<h3>${l.id?'Edit Video Lesson':'Add Video Lesson'}</h3>
+  <form data-form="lessonForm" data-editing="${l.id||''}">
+    <div class="form-group"><label>Course</label><select name="courseId">${DB.courses.map(c=>`<option value="${c.id}" ${c.courseId===c.id||l.courseId===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
+    ${fgVal('module','Module Name','text',l.module)}
+    ${fgVal('lessonTitle','Lesson Title','text',l.lessonTitle)}
+    ${fgVal('youtubeUrl','YouTube Video URL','text',l.youtubeUrl)}
+    ${fgVal('duration','Duration (e.g. 10 min)','text',l.duration)}
+    ${fgVal('order','Order','number',l.order)}
+    <label class="checkbox-row"><input type="checkbox" name="enabled" ${l.enabled!==false?'checked':''}> Enabled (visible to students)</label>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
+      <button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button>
+      <button type="submit" class="btn btn-primary">Save Lesson</button>
+    </div>
+  </form>`;
+}
+function adminSchedulesTab(main){
+  main.innerHTML=`<div class="admin-header-row"><h2>Study Schedule Management</h2><button class="btn btn-primary" data-action="new-schedule">+ Add Session</button></div>
+  <div class="table-wrap"><table><thead><tr><th>Date</th><th>Time</th><th>Course</th><th>Title</th><th>Instructor</th><th>Status</th><th>Actions</th></tr></thead>
+  <tbody>${DB.schedules.map(sc=>{const c=getCourse(sc.courseId);return `<tr><td>${fmtDate(sc.date)}</td><td>${sc.time}</td><td>${esc(c?c.name:'')}</td><td>${esc(sc.title)}</td><td>${esc(sc.instructor)}</td><td>${statusPill(sc.status)}</td>
+  <td class="table-actions"><button class="btn btn-outline btn-sm" data-action="edit-schedule" data-id="${sc.id}">Edit</button><button class="btn btn-danger btn-sm" data-action="del-schedule" data-id="${sc.id}">Delete</button></td></tr>`;}).join('')||`<tr><td colspan="7">${emptyState('📅','No sessions scheduled yet.')}</td></tr>`}</tbody></table></div>`;
+}
+function scheduleFormHTML(sc){
+  sc=sc||{status:'Upcoming'};
+  return `<h3>${sc.id?'Edit Session':'Add Session'}</h3>
+  <form data-form="scheduleForm" data-editing="${sc.id||''}">
+    <div class="form-group"><label>Course</label><select name="courseId">${DB.courses.map(c=>`<option value="${c.id}" ${sc.courseId===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
+    ${fgVal('title','Session Title','text',sc.title)}
+    <div class="form-group"><label>Description</label><textarea name="description" rows="2">${esc(sc.description||'')}</textarea></div>
+    ${fgVal('date','Date','date',sc.date)}
+    ${fgVal('time','Time','time',sc.time)}
+    ${fgVal('instructor','Instructor','text',sc.instructor)}
+    ${fgVal('link','Meeting / YouTube Link','text',sc.link)}
+    <div class="form-group"><label>Status</label><select name="status">${['Upcoming','Completed','Cancelled'].map(o=>`<option ${sc.status===o?'selected':''}>${o}</option>`).join('')}</select></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:10px;">
+      <button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button>
+      <button type="submit" class="btn btn-primary">Save Session</button>
+    </div>
+  </form>`;
+}
+function adminCertificatesTab(main){
+  main.innerHTML=`<div class="admin-header-row">
+    <h2>Certificate Management</h2>
+    <button class="btn btn-outline btn-sm" data-action="export" data-type="certificates">📥 Export Certificates (Excel)</button>
+  </div>
+  
+  <div class="form-card" style="max-width:none;margin-bottom:24px;">
+    <h3>Issue Certificate (One by One)</h3>
+    <p class="muted" style="font-size:.85rem;margin-bottom:14px;">Select any student and course to instantly generate and issue an official verifiable certificate.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;align-items:flex-end;">
+      <div>
+        <label style="font-size:.85rem;font-weight:600;display:block;margin-bottom:6px;">Select Student</label>
+        <select id="certStudentSelect" class="field-inline" style="width:100%;">
+          ${DB.students.map(s=>`<option value="${s.id}">${esc(s.fullName)} (${s.id})</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label style="font-size:.85rem;font-weight:600;display:block;margin-bottom:6px;">Select Course</label>
+        <select id="certCourseSelect" class="field-inline" style="width:100%;">
+          ${DB.courses.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <button class="btn btn-primary" data-action="manual-issue-cert-custom" style="width:100%;height:42px;">Issue Certificate</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap"><table><thead><tr><th>Certificate ID</th><th>Student</th><th>Course</th><th>Completion Date</th><th>Actions</th></tr></thead>
+  <tbody>${DB.certificates.map(c=>`<tr>
+    <td><strong>${c.id}</strong></td>
+    <td>${esc(c.studentName)}<br><small class="muted">${c.studentId}</small></td>
+    <td>${esc(c.courseName)}</td>
+    <td>${fmtDate(c.completionDate)}</td>
+    <td class="table-actions">
+      <a href="#/certificate/${c.id}" class="btn btn-primary btn-sm">View</a>
+      <button class="btn btn-outline btn-sm" data-action="download-cert" data-cert="${c.id}">Download</button>
+    </td>
+  </tr>`).join('')||`<tr><td colspan="5">${emptyState('🏆','No certificates issued yet.')}</td></tr>`}</tbody></table></div>`;
+}
+function adminEmailsTab(main){
+  main.innerHTML=`<h2>Email / Welcome Message Management</h2>
+  <p class="muted">Placeholders: <code>{{student_name}}</code> <code>{{student_id}}</code> <code>{{course_name}}</code> <code>{{login_email}}</code> <code>{{course_duration}}</code> <code>{{certificate_id}}</code> <code>{{completion_date}}</code></p>
+  <div class="grid grid-2">
+    <div class="form-card" style="max-width:none;"><h3>Welcome Email Template</h3>
+      <textarea id="welcomeTpl" rows="12" style="width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;">${esc(DB.settings.welcomeEmailTemplate)}</textarea>
+      <button class="btn btn-primary" style="margin-top:10px;" data-action="save-welcome-tpl">Save Template</button>
+    </div>
+    <div class="form-card" style="max-width:none;"><h3>Certificate Email Template</h3>
+      <textarea id="certTpl" rows="12" style="width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;">${esc(DB.settings.certEmailTemplate)}</textarea>
+      <button class="btn btn-primary" style="margin-top:10px;" data-action="save-cert-tpl">Save Template</button>
+    </div>
+  </div>`;
+}
+function adminImportExportTab(main){
+  main.innerHTML=`<h2>Excel Import / Export</h2>
+  <div class="form-card" style="max-width:none;margin-bottom:24px;"><h3>Import Students / Registrations</h3>
+  <p class="muted" style="font-size:.85rem;">Supported columns: StudentID, Name, Email, Mobile, Course, PaymentStatus, RegistrationDate, Progress</p>
+  <input type="file" id="importFile" accept=".xlsx,.xls,.csv">
+  <div id="importPreviewArea" style="margin-top:16px;">${emptyState('📄','No file selected yet.')}</div>
+  </div>
+  <div class="form-card" style="max-width:none;"><h3>Export Data</h3>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <button class="btn btn-outline" data-action="export" data-type="students">Export Students</button>
+    <button class="btn btn-outline" data-action="export" data-type="registrations">Export Registrations</button>
+    <button class="btn btn-outline" data-action="export" data-type="courses">Export Courses</button>
+    <button class="btn btn-outline" data-action="export" data-type="payments">Export Payments</button>
+    <button class="btn btn-outline" data-action="export" data-type="certificates">Export Certificates</button>
+  </div></div>`;
+  document.getElementById('importFile').addEventListener('change',function(e){if(e.target.files[0])handleImportFile(e.target.files[0]);});
+}
+function adminSettingsTab(main){
+  main.innerHTML=`<h2>Website Settings</h2>
+  <div class="disclaimer">This application runs entirely in your browser. Data is stored in <strong>localStorage</strong> on this device only. Authentication, payments and email sending are simulated for demo purposes and are not production-grade or secure.</div>
+  <div class="grid grid-2">
+    <form class="form-card" style="max-width:none;" data-form="siteSettings">
+      <h3>General</h3>
+      ${fgVal('orgName','Organization Name','text',DB.settings.orgName)}
+      ${fgVal('tagline','Tagline','text',DB.settings.tagline)}
+      <button class="btn btn-primary" type="submit">Save Settings</button>
+    </form>
+    <form class="form-card" style="max-width:none;" data-form="adminCreds">
+      <h3>Admin Credentials</h3>
+      ${fgVal('adminUsername','Admin Username','text',DB.settings.adminUsername)}
+      ${fgVal('adminPassword','Admin Password','text',DB.settings.adminPassword)}
+      <button class="btn btn-primary" type="submit">Update Credentials</button>
+    </form>
+  </div>
+  <div class="form-card" style="max-width:none;margin-top:24px;">
+    <h3>Reset Demo Data</h3>
+    <p class="muted">This clears all courses, students, registrations, payments and certificates and restores the original sample data.</p>
+    <button class="btn btn-danger" data-action="reset-demo">Reset Demo Data</button>
+  </div>`;
+}
+
+/* ===================== ACTIONS (event delegation) ===================== */
+const actions={
+  'close-modal':()=>closeModal(),
+  'logout':()=>logout(),
+  'forgot-password':()=>openModal(`<h3>Forgot Password</h3><p class="muted">This is a front-end demo without email delivery.</p>
+    <div class="form-group"><label>Enter your email</label><input type="email" id="fpEmail"></div>
+    <button class="btn btn-primary btn-block" onclick="toast('If an account exists, a reset link would be sent. (Demo mode — no email sent)');closeModal();">Send Reset Link</button>`),
+  'new-course':()=>openModal(courseFormHTML()),
+  'edit-course':(t)=>openModal(courseFormHTML(getCourse(t.dataset.id))),
+  'dup-course':(t)=>{duplicateCourse(t.dataset.id);toast('Course duplicated.','success');renderAdmin('courses');},
+  'del-course':(t)=>confirmAction('Delete this course? This cannot be undone.',()=>{deleteCourse(t.dataset.id);toast('Course deleted.','success');renderAdmin('courses');}),
+  'view-student':(t)=>{const s=getStudent(t.dataset.id);const regs=registrationsForStudent(s.id);
+    openModal(`<h3>${esc(s.fullName)}</h3><p class="muted">${s.id} · ${esc(s.email)} · ${esc(s.mobile)}</p>
+    <p>${esc(s.address)}, ${esc(s.city)}, ${esc(s.state)} ${esc(s.pincode)}</p>
+    <p>${esc(s.qualification)} — ${esc(s.institution)} · ${esc(s.occupation)}</p><hr class="sep">
+    <h4>Registrations</h4>${regs.map(r=>{const c=getCourse(r.courseId),p=paymentForReg(r.id);return `<div class="mini-course-row"><span>${esc(c.name)}</span>${statusPill(r.status)}${p?statusPill(p.status):''}</div>`;}).join('')||'<p class="muted">No registrations.</p>'}`);},
+  'edit-student':(t)=>{const s=getStudent(t.dataset.id);openModal(`<h3>Edit Student</h3><form data-form="editStudent" data-id="${s.id}">
+    <div class="form-grid">${fgVal('fullName','Full Name','text',s.fullName)}${fgVal('email','Email','email',s.email)}${fgVal('mobile','Mobile','tel',s.mobile)}${fgVal('city','City','text',s.city)}</div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;"><button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button><button class="btn btn-primary" type="submit">Save</button></div></form>`);},
+  'del-student':(t)=>confirmAction('Delete this student and all their records?',()=>{deleteStudent(t.dataset.id);toast('Student deleted.','success');renderAdmin('students');}),
+  'mark-completed-reg':(t)=>{markRegistrationCompleted(t.dataset.id);toast('Registration marked as completed.','success');renderAdmin('registrations');},
+  'admin-gen-cert':(t)=>{
+    const cert = generateCertificate(t.dataset.student,t.dataset.course);
+    // Also mark registration completed if exists
+    const reg = DB.registrations.find(r=>r.studentId===t.dataset.student&&r.courseId===t.dataset.course);
+    if(reg) { reg.status='completed'; reg.progressPercent=100; saveDB(); }
+    toast('Certificate '+cert.id+' issued successfully!','success');
+    renderAdmin('registrations');
+  },
+  'export-registrations':()=>{exportToExcel('registrations');},
+  'admin-add-reg':()=>{
+    const activeCourses=DB.courses.filter(c=>c.status==='active');
+    openModal(`<h3>+ Add Student Registration</h3>
+      <form data-form="adminAddRegForm">
+        <div class="form-group">
+          <label>Select Existing Student or Create New *</label>
+          <select id="aarStudentType" class="field-inline" style="width:100%;margin-bottom:10px;" onchange="document.getElementById('aarNewStudentFields').style.display=this.value==='new'?'block':'none';document.getElementById('aarExistingSelect').style.display=this.value==='existing'?'block':'none';">
+            <option value="existing">Existing Student</option>
+            <option value="new">+ New Student</option>
+          </select>
+        </div>
+        <div id="aarExistingSelect" class="form-group">
+          <label>Existing Student</label>
+          <select name="existingStudentId" class="field-inline" style="width:100%;">
+            ${DB.students.map(s=>`<option value="${s.id}">${esc(s.fullName)} (${s.email})</option>`).join('')}
+          </select>
+        </div>
+        <div id="aarNewStudentFields" style="display:none;background:var(--tint);padding:14px;border-radius:8px;margin-bottom:12px;">
+          <div class="form-group"><label>Full Name *</label><input name="newFullName" type="text" placeholder="e.g. Rahul Sharma"></div>
+          <div class="form-group"><label>Email *</label><input name="newEmail" type="email" placeholder="e.g. rahul@example.com"></div>
+          <div class="form-group"><label>Mobile *</label><input name="newMobile" type="tel" placeholder="e.g. 9876543210"></div>
+        </div>
+        <div class="form-group">
+          <label>Course Selection *</label>
+          <select name="courseId" class="field-inline" style="width:100%;">
+            ${activeCourses.map(c=>`<option value="${c.id}">${esc(c.name)} - ${fmtMoney(c.discountPrice||c.price)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group"><label>Course Status</label><select name="regStatus" class="field-inline" style="width:100%;"><option value="active">Active (Ongoing)</option><option value="completed">Completed</option><option value="pending">Pending</option></select></div>
+          <div class="form-group"><label>Payment Status</label><select name="payStatus" class="field-inline" style="width:100%;"><option value="Verified">Verified</option><option value="Pending">Pending</option></select></div>
+        </div>
+        <div class="form-group"><label><input type="checkbox" name="autoIssueCert" value="1"> Issue certificate immediately for this registration</label></div>
+        <button class="btn btn-primary btn-block" type="submit" style="margin-top:14px;">Save Registration</button>
+      </form>`);
+  },
+  'manual-issue-cert-custom':()=>{
+    const stuId=document.getElementById('certStudentSelect').value;
+    const crsId=document.getElementById('certCourseSelect').value;
+    if(!stuId||!crsId){toast('Please select both student and course.','error');return;}
+    const cert=generateCertificate(stuId,crsId);
+    toast('Certificate '+cert.id+' issued successfully!','success');
+    renderAdmin('certificates');
+  },
+  'manual-issue-cert':()=>{const v=document.getElementById('manualCertReg').value.split('|');generateCertificate(v[0],v[1]);toast('Certificate issued successfully.','success');renderAdmin('certificates');},
+  'verify-pay':(t)=>{verifyPayment(t.dataset.id,true);toast('Payment verified.','success');renderAdmin('payments');},
+  'reject-pay':(t)=>{verifyPayment(t.dataset.id,false);toast('Payment rejected.','error');renderAdmin('payments');},
+  'save-course-payment':(t)=>{const id=t.dataset.id;const c=getCourse(id);
+    c.upiId=document.getElementById('upi_'+id).value;c.price=Number(document.getElementById('price_'+id).value||0);c.discountPrice=Number(document.getElementById('disc_'+id).value||0);
+    saveDB();toast('Course payment settings updated.','success');},
+  'new-lesson':()=>openModal(lessonFormHTML()),
+  'edit-lesson':(t)=>openModal(lessonFormHTML(DB.lessons.find(l=>l.id===t.dataset.id))),
+  'del-lesson':(t)=>confirmAction('Delete this lesson?',()=>{DB.lessons=DB.lessons.filter(l=>l.id!==t.dataset.id);saveDB();toast('Lesson deleted.','success');renderAdmin('lessons');}),
+  'toggle-lesson':(t)=>{const l=DB.lessons.find(x=>x.id===t.dataset.id);l.enabled=l.enabled===false?true:false;saveDB();renderAdmin('lessons');},
+  'move-lesson':(t)=>{const l=DB.lessons.find(x=>x.id===t.dataset.id);const list=lessonsForCourse(l.courseId);const idx=list.findIndex(x=>x.id===l.id);
+    const swap=t.dataset.dir==='up'?list[idx-1]:list[idx+1];if(swap){const tmp=l.order;l.order=swap.order;swap.order=tmp;saveDB();renderAdmin('lessons');}},
+  'new-schedule':()=>openModal(scheduleFormHTML()),
+  'edit-schedule':(t)=>openModal(scheduleFormHTML(DB.schedules.find(s=>s.id===t.dataset.id))),
+  'del-schedule':(t)=>confirmAction('Delete this session?',()=>{deleteSchedule(t.dataset.id);toast('Session deleted.','success');renderAdmin('schedules');}),
+  'export':(t)=>exportToExcel(t.dataset.type),
+  'confirm-import':()=>confirmImportStudents(),
+  'cancel-import':()=>{importPreviewRows=[];document.getElementById('importFile').value='';renderImportPreview();},
+  'reset-demo':()=>confirmAction('This will erase all current data and restore the sample dataset. Continue?',()=>{localStorage.removeItem(DB_KEY);clearSession();loadDB();toast('Demo data has been reset.','success');location.hash='#/home';}),
+  'save-welcome-tpl':()=>{DB.settings.welcomeEmailTemplate=document.getElementById('welcomeTpl').value;saveDB();toast('Welcome email template saved.','success');},
+  'save-cert-tpl':()=>{DB.settings.certEmailTemplate=document.getElementById('certTpl').value;saveDB();toast('Certificate email template saved.','success');},
+  'gen-cert':(t)=>{const s=currentStudent();const cert=generateCertificate(s.id,t.dataset.course);toast('Certificate generated successfully.','success');location.hash='#/certificate/'+cert.id;},
+  'download-cert':(t)=>downloadCertificate(t.dataset.cert),
+  'email-cert':(t)=>{const cert=DB.certificates.find(c=>c.id===t.dataset.cert);const body=renderTemplate(DB.settings.certEmailTemplate,{student_name:cert.studentName,course_name:cert.courseName,certificate_id:cert.id,completion_date:fmtDate(cert.completionDate)});
+    const lines=body.split('\n');const subject=lines[0].replace(/^Subject:\s*/i,'');const rest=lines.slice(1).join('\n').trim();
+    window.location.href=mailtoLink(subject,rest);toast('Opening your email client… (email is not actually sent by the browser)');},
+  'open-payment-submit':(t)=>{openModal(`<h3>Confirm Payment</h3><p class="muted">Enter the UPI transaction reference number from your payment app.</p>
+    <div class="form-group"><label>Transaction / Reference ID (optional)</label><input type="text" id="refIdInput" placeholder="e.g. 302512345678"></div>
+    <button class="btn btn-primary btn-block" id="confirmPaySubmit">Submit for Verification</button>`);
+    document.getElementById('confirmPaySubmit').onclick=()=>{submitPayment(t.dataset.payment,document.getElementById('refIdInput').value.trim());closeModal();toast('Payment submitted for verification.','success');route();};},
+  'go-lesson':(t)=>{location.hash=`#/learn/${t.dataset.course}/${t.dataset.lesson}`;},
+  'mark-complete':(t)=>{const s=currentStudent();markLessonComplete(s.id,t.dataset.course,t.dataset.lesson);toast('Lesson marked complete!','success');renderLearning(t.dataset.course,t.dataset.lesson);}
+};
+
+document.addEventListener('click',function(e){
+  const t=e.target.closest('[data-action]');
+  if(!t)return;
+  const fn=actions[t.dataset.action];
+  if(fn)fn(t,e);
+});
+
+/* ===================== FORM HANDLERS ===================== */
+function showFieldErrors(form,errors){
+  form.querySelectorAll('.form-group').forEach(g=>g.classList.remove('invalid'));
+  form.querySelectorAll('.field-error').forEach(s=>s.textContent='');
+  Object.keys(errors||{}).forEach(k=>{
+    const err=form.querySelector(`[data-err="${k}"]`);
+    if(err){err.textContent=errors[k];err.closest('.form-group').classList.add('invalid');}
+  });
+}
+const forms={
+  register:(f)=>{
+    const data=Object.fromEntries(new FormData(f).entries());
+    const result=studentSignup(data);
+    if(!result.ok){showFieldErrors(f,result.errors);toast('Please fix the highlighted fields.','error');return;}
+    const {student,course}=result;
+    const emailBody=renderTemplate(DB.settings.welcomeEmailTemplate,{student_name:student.fullName,student_id:student.id,course_name:course.name,login_email:student.email,course_duration:course.duration});
+    const lines=emailBody.split('\n');const subject=lines[0].replace(/^Subject:\s*/i,'');const rest=lines.slice(1).join('\n').trim();
+    openModal(`<h3>Registration Successful!</h3><p>Your Student ID is <strong>${student.id}</strong>.</p>
+      <hr class="sep"><h4>Welcome Email Preview</h4>
+      <div style="background:var(--tint);padding:14px;border-radius:8px;font-size:.85rem;white-space:pre-wrap;max-height:200px;overflow-y:auto;">${esc(rest)}</div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <a class="btn btn-outline" href="${mailtoLink(subject,rest)}">Open Email</a>
+        <button class="btn btn-primary" id="goPayBtn">Continue to Payment</button>
+      </div>`);
+    document.getElementById('goPayBtn').onclick=()=>{closeModal();location.hash='#/payment/'+result.registration.id;};
+  },
+  login:(f)=>{
+    const d=Object.fromEntries(new FormData(f).entries());
+    const idVal=String(d.identifier||'').trim();
+    const pwdVal=String(d.password||'');
+    
+    // 1. Check if Admin credentials
+    const adminUser=DB.settings.adminUsername||'admin';
+    const adminPass=DB.settings.adminPassword||'admin123';
+    if((idVal.toLowerCase()===adminUser.toLowerCase() || idVal.toLowerCase()==='admin@coursehub.com') && pwdVal===adminPass){
+      setSession({role:'admin',id:'admin'});
+      toast('Welcome back, Administrator!','success');
+      location.hash='#/admin/dashboard';
+      return;
+    }
+
+    // 2. Check if Student credentials
+    const s=DB.students.find(x=>(x.email.toLowerCase()===idVal.toLowerCase() || x.id.toLowerCase()===idVal.toLowerCase()) && x.password===pwdVal);
+    if(s){
+      setSession({role:'student',id:s.id});
+      toast('Welcome back, '+s.fullName.split(' ')[0]+'!','success');
+      location.hash='#/dashboard';
+      return;
+    }
+
+    toast('Invalid credentials. Please verify your username/email and password.','error');
+  },
+  adminLogin:(f)=>{
+    const d=Object.fromEntries(new FormData(f).entries());
+    if(adminLogin(d.username,d.password)){toast('Welcome to the admin panel.','success');location.hash='#/admin/dashboard';}
+    else toast('Invalid admin credentials.','error');
+  },
+  updateProfile:(f)=>{
+    const s=currentStudent();const d=Object.fromEntries(new FormData(f).entries());
+    updateStudentProfile(s.id,d);toast('Profile updated successfully.','success');
+  },
+  courseForm:(f)=>{
+    const d=Object.fromEntries(new FormData(f).entries());
+    const editingId=f.dataset.editing||null;
+    const fileInput=f.querySelector('[name=imageFile]');
+    function finish(imgData){
+      d.image=imgData||d.image||'';
+      d.couponCode=f.querySelector('[name=couponCode]') ? f.querySelector('[name=couponCode]').value : '';
+      d.certEligible=f.querySelector('[name=certEligible]').checked;
+      d.registrationOpen=f.querySelector('[name=registrationOpen]').checked;
+      saveCourse(d,editingId);
+      closeModal();toast('Course '+(editingId?'updated':'added')+' successfully.','success');
+      renderAdmin('courses');
+    }
+    if(fileInput&&fileInput.files&&fileInput.files[0]){
+      const reader=new FileReader();
+      reader.onload=(e)=>finish(e.target.result);
+      reader.readAsDataURL(fileInput.files[0]);
+    } else finish(null);
+  },
+  lessonForm:(f)=>{
+    const d=Object.fromEntries(new FormData(f).entries());
+    const editingId=f.dataset.editing||null;
+    d.enabled=f.querySelector('[name=enabled]').checked;
+    d.order=Number(d.order||1);
+    if(editingId){const l=DB.lessons.find(x=>x.id===editingId);Object.assign(l,d);}
+    else DB.lessons.push({id:uid('L').toUpperCase(),...d});
+    saveDB();closeModal();toast('Lesson saved successfully.','success');renderAdmin('lessons');
+  },
+  scheduleForm:(f)=>{
+    const d=Object.fromEntries(new FormData(f).entries());
+    saveSchedule(d,f.dataset.editing||null);
+    closeModal();toast('Schedule saved successfully.','success');renderAdmin('schedules');
+  },
+  editStudent:(f)=>{
+    const d=Object.fromEntries(new FormData(f).entries());
+    updateStudentProfile(f.dataset.id,d);
+    closeModal();toast('Student updated successfully.','success');renderAdmin('students');
+  },
+  siteSettings:(f)=>{
+    const d=Object.fromEntries(new FormData(f).entries());
+    Object.assign(DB.settings,d);saveDB();toast('Settings saved successfully.','success');
+  },
+  adminCreds:(f)=>{
+    const d=Object.fromEntries(new FormData(f).entries());
+    Object.assign(DB.settings,d);saveDB();toast('Admin credentials updated.','success');
+  },
+  adminAddRegForm:(f)=>{
+    const d=Object.fromEntries(new FormData(f).entries());
+    let studentId=d.existingStudentId;
+    if(d.existingStudentId==='new'||document.getElementById('aarStudentType').value==='new'){
+      if(!d.newFullName||!d.newEmail){toast('Please provide name and email for new student.','error');return;}
+      studentId=nextStudentId();
+      const newStudent={
+        id:studentId,
+        fullName:d.newFullName.trim(),
+        email:d.newEmail.trim(),
+        mobile:(d.newMobile||'').trim(),
+        password:'demo123',
+        regDate:new Date().toISOString().slice(0,10)
+      };
+      DB.students.push(newStudent);
+    }
+    const courseId=d.courseId;
+    const course=getCourse(courseId);
+    const regId=uid('REG').toUpperCase();
+    const isCompleted=d.regStatus==='completed';
+    const reg={
+      id:regId,
+      studentId,
+      courseId,
+      date:new Date().toISOString().slice(0,10),
+      status:d.regStatus||'active',
+      progressPercent:isCompleted?100:0
+    };
+    DB.registrations.push(reg);
+    DB.payments.push({
+      id:uid('PAY').toUpperCase(),
+      studentId,
+      courseId,
+      regId,
+      amount:course?(course.discountPrice||course.price):0,
+      date:reg.date,
+      status:d.payStatus||'Verified',
+      refId:'ADMIN-MANUAL'
+    });
+    if(d.autoIssueCert==='1'||isCompleted){
+      generateCertificate(studentId,courseId);
+    }
+    saveDB();
+    closeModal();
+    toast('Registration added successfully!','success');
+    renderAdmin('registrations');
+  }
+};
+document.addEventListener('submit',function(e){
+  const f=e.target.closest('form[data-form]');
+  if(!f)return;
+  e.preventDefault();
+  const handler=forms[f.dataset.form];
+  if(handler)handler(f,e);
+});
+
+/* ===================== NAV / MOBILE MENU ===================== */
+document.getElementById('hamburgerBtn').addEventListener('click',()=>{
+  document.body.classList.toggle('nav-open');
+});
+document.querySelectorAll('#mobileNav a').forEach(a=>{
+  a.addEventListener('click',()=>{document.body.classList.remove('nav-open');});
+});
+function updateNavAuthState(){
+  const s=currentStudent();
+  const a=isAdmin();
+  const authBtn=document.getElementById('navAuthBtn'), authBtnM=document.getElementById('navAuthBtnMobile');
+  const logoutBtn=document.getElementById('navLogoutBtn'), logoutBtnM=document.getElementById('navLogoutBtnMobile');
+  
+  if(a){
+    if(authBtn){authBtn.textContent='Admin Dashboard';authBtn.href='#/admin/dashboard';}
+    if(authBtnM){authBtnM.textContent='Admin Dashboard';authBtnM.href='#/admin/dashboard';}
+    if(logoutBtn)logoutBtn.style.display='inline-flex';
+    if(logoutBtnM)logoutBtnM.style.display='block';
+  } else if(s){
+    if(authBtn){authBtn.textContent='My Dashboard';authBtn.href='#/dashboard';}
+    if(authBtnM){authBtnM.textContent='My Dashboard';authBtnM.href='#/dashboard';}
+    if(logoutBtn)logoutBtn.style.display='inline-flex';
+    if(logoutBtnM)logoutBtnM.style.display='block';
+  } else {
+    if(authBtn){authBtn.textContent='Login';authBtn.href='#/login';}
+    if(authBtnM){authBtnM.textContent='Login';authBtnM.href='#/login';}
+    if(logoutBtn)logoutBtn.style.display='none';
+    if(logoutBtnM)logoutBtnM.style.display='none';
+  }
+}
+
+/* ===================== 12. ROUTER / INIT ===================== */
+function requireStudent(cb){if(!currentStudent()){toast('Please log in to continue.','error');location.hash='#/login';return;}cb();}
+function requireAdmin(cb){if(!isAdmin()){toast('Admin access restricted. Please log in with admin credentials.','error');location.hash='#/login';return;}cb();}
+
+function route(){
+  document.body.classList.remove('nav-open');
+  const hash=location.hash.replace(/^#\//,'')||'home';
+  const parts=hash.split('/');
+  const page=parts[0];
+  window.scrollTo(0,0);
+  switch(page){
+    case 'home':
+      renderHome();
+      if(parts[1]){setTimeout(()=>{const el=document.getElementById(parts[1]);if(el)el.scrollIntoView({behavior:'smooth'});},50);}
+      break;
+    case 'courses': renderCourses(); break;
+    case 'course': renderCourseDetails(parts[1]); break;
+    case 'register': renderRegister(parts[1]); break;
+    case 'login': renderLogin(); break;
+    case 'dashboard': requireStudent(()=>renderDashboard(parts[1])); break;
+    case 'payment': requireStudent(()=>renderPayment(parts[1])); break;
+    case 'learn': requireStudent(()=>renderLearning(parts[1],parts[2])); break;
+    case 'certificate': renderCertificatePage(parts[1]); break;
+    case 'admin-login': location.hash='#/login'; break;
+    case 'admin': requireAdmin(()=>renderAdmin(parts[1])); break;
+    default: renderHome();
+  }
+  updateNavAuthState();
+}
+window.addEventListener('hashchange',route);
+window.addEventListener('DOMContentLoaded',()=>{
+  loadDB();
+  document.getElementById('footYear').textContent=new Date().getFullYear();
+  route();
+});
+</script>
+</body>
+</html>
